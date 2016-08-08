@@ -53,26 +53,27 @@ script:
   - ansible-lint tests/$SITE
 
   # simple checks (@todo add proper tests)
+  - test -e /var/www/magentodemo/devbox/logs
+  - test -e /var/www/magentodemo/devbox/releases/current/htdocs
+  - test -e /var/www/magentodemo/devbox/sessions
   - test -e /var/www/magentodemo/devbox/shared/media
   - test -e /var/www/magentodemo/devbox/shared/var
-  - test -e /var/www/magentodemo/devbox/releases/current/htdocs
+  - test -e /var/www/magentodemo/devbox/tmp
 
+  - test -e /var/www/magento2demo/logs
+  - test -e /var/www/magento2demo/devbox/releases/current/pub
+  - test -e /var/www/magento2demo/sessions
   - test -e /var/www/magento2demo/devbox/shared/media
   - test -e /var/www/magento2demo/devbox/shared/var
-  - test -e /var/www/magento2demo/devbox/releases/current/pub
-
-  - test -e /opt/roundcube/sessions
-  - test -e /opt/roundcube/tmp
-  - test -e /opt/roundcube/usr
+  - test -e /var/www/magento2demo/tmp
 
   - test -e /etc/nginx/sites-enabled/magentodemo
   - test -e /etc/nginx/sites-enabled/magento2demo
   - test -e /etc/php5/fpm/pool.d/projects.magentodemo.conf
   - test -e /etc/php5/fpm/pool.d/projects.magento2demo.conf
 
-
-  - curl http://localhost | grep 'PHP'
-#  - if [[ "$SITE" == "test-without-ssl.yml" ]]; then curl http://localhost | grep 'ambimax® RoundCube'; fi
+  - curl http://magentodemo.local | grep 'PHP'
+  - curl http://magento2demo.local | grep 'PHP'
 
 after_failure:
   - ansible-playbook -i tests/inventory tests/$SITE --connection=local --sudo
@@ -88,6 +89,8 @@ after_failure:
   - sudo cat /etc/nginx/sites-enabled/magento2demo
   - sudo cat /etc/php5/fpm/pool.d/projects.magentodemo.conf
   - sudo cat /etc/php5/fpm/pool.d/projects.magento2demo.conf
+  - curl http://magentodemo.local
+  - curl http://magento2demo.local
 
 notifications:
   slack: ambimax:2MlPTX9bY9aPxCPhJGxHKIT6
