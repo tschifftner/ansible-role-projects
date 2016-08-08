@@ -8,7 +8,7 @@
     state: directory
     owner: '{{ project.owner | default(project_default_owner) }}'
     group: '{{ project.group | default(project_default_group) }}'
-    mode: '2775'
+    mode: '02775'
   with_items: ['logs', 'releases']
 
 - name: Create project structure [default, world-writeable]
@@ -17,7 +17,7 @@
     state: directory
     owner: '{{ project.owner | default(project_default_owner) }}'
     group: '{{ project.group | default(project_default_group) }}'
-    mode: '2777'
+    mode: '02777'
   with_items: ['sessions', 'tmp']
 
 - name: Check if current symlink exists
@@ -47,7 +47,7 @@
     state: directory
     owner: '{{ project.owner | default(project_default_owner) }}'
     group: '{{ project.group | default(project_default_group) }}'
-    mode: '2777'
+    mode: '02777'
   with_items: ['shared/media', 'shared/var', 'releases/current/pub/static']
 
 - name: Ensure magento snippet exists
@@ -74,7 +74,7 @@
     minute: '*/1'
     job: '(cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current/ && /usr/bin/php bin/magento cron:run | grep -v "Ran jobs by schedule" >> var/log/magento.cron.log)'
     cron_file: '{{ project.name }}'
-    user: 'vagrant'
+    user: '{{ project.owner | default(project_default_owner) }}'
 
 - name: 'set 2. cronjob [magento2]'
   cron:
@@ -83,7 +83,7 @@
     #job: '/usr/bin/php /var/www/{{ project.name }}/{{ project.environment }}/releases/current/update/cron.php [>> /log/file &]'
     job: '(cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current/ && /usr/bin/php update/cron.php >> var/log/update.cron.log)'
     cron_file: '{{ project.name }}'
-    user: 'vagrant'
+    user: '{{ project.owner | default(project_default_owner) }}'
 
 - name: 'set 3. cronjob [magento2]'
   cron:
@@ -92,4 +92,4 @@
     #job: '/usr/bin/php /var/www/{{ project.name }}/{{ project.environment }}/releases/current/bin/magento setup:cron:run [>> /log/file &'
     job: '(cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current/ && /usr/bin/php bin/magento setup:cron:run >> var/log/setup.cron.log)'
     cron_file: '{{ project.name }}'
-    user: 'vagrant'
+    user: '{{ project.owner | default(project_default_owner) }}'

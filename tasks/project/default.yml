@@ -8,7 +8,7 @@
     state: directory
     owner: '{{ project.owner | default(project_default_owner) }}'
     group: '{{ project.group | default(project_default_group) }}'
-    mode: '2775'
+    mode: '02775'
   with_items: ['logs', 'releases', 'releases/current']
 
 - name: Create project structure [default, world-writeable]
@@ -17,7 +17,7 @@
     state: directory
     owner: '{{ project.owner | default(project_default_owner) }}'
     group: '{{ project.group | default(project_default_group) }}'
-    mode: '2777'
+    mode: '02777'
   with_items: ['shared', 'sessions', 'tmp']
 
 - name: Create nginx vhost [default]

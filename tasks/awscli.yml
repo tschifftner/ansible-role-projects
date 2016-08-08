@@ -9,8 +9,6 @@
   file:
     path: ~/.aws
     state: directory
-#    owner: vagrant
-#    group: vagrant
   when: _aws_credentials is defined and _aws_credentials|length
   become: "{{ project.owner | default(project_default_owner) }}"
 
@@ -18,7 +16,5 @@
   template:
     src: aws/config
     dest: ~/.aws/credentials
-#    owner: vagrant
-#    group: vagrant
   when: _aws_credentials is defined and _aws_credentials|length
   become: "{{ project.owner | default(project_default_owner) }}"

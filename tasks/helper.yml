@@ -23,4 +23,3 @@
     dest: '/usr/local/bin/{{ project.name }}'
     mode: '0755'
   when: project.helper is defined
-#  become: "{{ project.owner | default(project_default_owner) }}"

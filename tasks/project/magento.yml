@@ -1,5 +1,6 @@
 ---
-- set_fact:
+- name: Set magento facts
+  set_fact:
 #    project: '{{ item }}'
 #    working_dir: '/var/www/{{ item.name }}/{{ item.environment }}/releases/develop'
 #    projectstorage_dir: '/home/projectstorage/{{ item.name }}'
@@ -13,7 +14,7 @@
     state: directory
     owner: '{{ project.owner | default(project_default_owner) }}'
     group: '{{ project.group | default(project_default_group) }}'
-    mode: '2775'
+    mode: '02775'
   with_items: ['logs', 'releases']
 
 - name: Create project structure [default, world-writeable]
@@ -31,7 +32,7 @@
     state: directory
     owner: '{{ project.owner | default(project_default_owner) }}'
     group: '{{ project.group | default(project_default_group) }}'
-    mode: '2777'
+    mode: '02777'
   with_items:
     - '{{ project.environment }}/shared/media'
     - '{{ project.environment }}/shared/var'
@@ -65,7 +66,7 @@
     state: directory
     owner: '{{ project.owner | default(project_default_owner) }}'
     group: '{{ project.group | default(project_default_group) }}'
-    mode: '2777'
+    mode: '02777'
   with_items: ['shared/media', 'shared/var']
 
 - name: Clone deploy script [magento]

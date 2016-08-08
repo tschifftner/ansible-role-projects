@@ -1,11 +1,12 @@
 ---
 - hosts: localhost
   remote_user: root
+
   vars:
     project_default_owner: 'travis'
     project_default_group: 'travis'
 
-    magento2demo_project:
+    magentodemo_project:
       name: magentodemo
       type: magento
       environment: devbox
