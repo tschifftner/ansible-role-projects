@@ -1,0 +1,38 @@
+---
+
+- name: 'Collect all databases'
+  set_fact:
+    _project_databases: '{{ (_project_databases | default([])) + item.databases | list }}'
+  when: (item.remove is not defined or item.remove != true)
+  with_items: "{{ projects | selectattr('databases', 'defined') | list }}"
+
+- name: 'Collect all databases for removal'
+  set_fact:
+    _project_remove_databases: '{{ (_project_remove_databases | default([])) + item.databases | list }}'
+  when: (item.remove is defined and item.remove == true)
+  with_items: "{{ projects | selectattr('databases', 'defined') | list }}"
+
+- name: 'Collect all database users'
+  set_fact:
+    _project_database_users: '{{ (_project_database_users | default([])) + item.database_users | list }}'
+  with_items: "{{ projects | selectattr('database_users', 'defined') | list }}"
+
+
+- name: Create or update databases
+  mysql_db:
+    name: "{{ item }}"
+    state: present
+  when: _project_databases|length
+  with_items: '{{ _project_databases }}'
+
+- name: Manage mysql users
+  mysql_user:
+    name: "{{ item.name }}"
+    host: "{{ item.host | default('localhost') }}"
+    password: "{{ item.password }}"
+    priv: "{{ item.priv | default('*.*:USAGE') }}"
+    state: "{{ item.state | default('present') }}"
+    append_privs: "{{ item.append_privs | default('no') }}"
+  no_log: true
+  when: _project_database_users|length
+  with_items: '{{ _project_database_users }}'

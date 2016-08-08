@@ -1,0 +1,41 @@
+---
+#- set_fact:
+#    project: '{{ item }}'
+
+- name: Remove nginx vhost
+  notify: reload nginx
+  file:
+    path: '/etc/nginx/sites-enabled/{{ project.name }}'
+    state: absent
+
+- name: Remove php5-fpm vhost
+  notify: reload php5-fpm
+  file:
+    path: '/etc/php5/fpm/pool.d/projects.{{ project.name }}.conf'
+    state: absent
+
+- name: Remove file structure
+  file:
+    path: '/var/www/{{ project.name }}/{{ project.environment }}'
+    state: absent
+
+- name: Check if project folder still exists
+  stat:
+    path: /var/www/{{ project.name }}
+  register: _project_dir
+
+- name: Find empty project folders
+  command: find /var/www/{{ project.name }} -maxdepth 1 -empty
+  register: _empty_project_folders
+  when: _project_dir.stat is defined and _project_dir.stat.exists == true
+
+- name: Remove empty project folder
+  file:
+    path: '{{ _empty_project_folders.stdout }}'
+    state: absent
+  when: _empty_project_folders.stdout is defined
+
+- name: Remove crontab files
+  file:
+    path: '/etc/cron.d/{{ project.name }}'
+    state: absent

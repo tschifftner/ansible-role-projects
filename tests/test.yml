@@ -1,0 +1,39 @@
+---
+- hosts: localhost
+  remote_user: root
+  vars:
+    project_default_owner: 'travis'
+    project_default_group: 'travis'
+
+    magento2demo_project:
+      name: magentodemo
+      type: magento
+      environment: devbox
+      server_alias: magentodemo.local
+      databases: ['magentodemo']
+
+    magento2demo_project:
+      name: magento2demo
+      type: magento2
+      environment: devbox
+      server_alias: magento2demo.local
+      databases: ['magento2demo']
+
+
+    projects:
+      - '{{ magentodemo_project }}'
+      - '{{ magento2demo_project }}'
+
+
+  roles:
+    - ansible-role-projects
+
+  tasks:
+    - name: Add index.php to projects
+      copy:
+        content: '<?php phpinfo();'
+        dest: '{{ item }}'
+        mode: '0644'
+      with_items:
+        - 'var/www/magentodemo/devbox/releases/current/htdocs/index.php'
+        - 'var/www/magento2demo/devbox/releases/current/pub/index.php'

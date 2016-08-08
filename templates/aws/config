@@ -1,0 +1,9 @@
+{% for profile in _aws_credentials %}
+[{{ profile.profilename }}]
+{% for key, value in profile.iteritems() %}
+{% if key != 'profilename' %}
+{{ key }}={{ value }}
+{% endif %}
+{% endfor %}
+
+{% endfor %}

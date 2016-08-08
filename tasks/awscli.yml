@@ -1,0 +1,24 @@
+
+- name: Collect credentials
+  set_fact:
+    _aws_credentials: '{{ (_aws_credentials | default([])) + item.awscli | list }}'
+  when: item.awscli is defined and item.awscli|length
+  with_items: '{{ projects }}'
+
+- name: Ensure aws config folder exists
+  file:
+    path: ~/.aws
+    state: directory
+#    owner: vagrant
+#    group: vagrant
+  when: _aws_credentials is defined and _aws_credentials|length
+  become: "{{ project.owner | default(project_default_owner) }}"
+
+- name: Set aws config
+  template:
+    src: aws/config
+    dest: ~/.aws/credentials
+#    owner: vagrant
+#    group: vagrant
+  when: _aws_credentials is defined and _aws_credentials|length
+  become: "{{ project.owner | default(project_default_owner) }}"

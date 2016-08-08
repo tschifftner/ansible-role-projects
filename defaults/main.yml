@@ -1,0 +1,35 @@
+---
+
+projects: []
+
+project_default_owner: ''
+project_default_group: ''
+
+# Folders required for any project
+project_folders:
+  - 'logs'
+  - 'releases'
+  - 'releases/current/htdocs' # must be created for php5-fpm to start before project is complete
+
+project_folders_writable:
+  - 'sessions'
+  - 'shared/media'
+  - 'shared/var'
+  - 'tmp'
+
+project_magento_symlinks:
+  - src: 'shared/media'
+    dest: 'releases/current/htdocs/media'
+
+  - src: 'shared/var'
+    dest: 'releases/current/htdocs/var'
+
+project_magento2_symlinks:
+  - src: 'shared/media'
+    dest: 'releases/current/pub/media'
+
+  - src: 'shared/var'
+    dest: 'releases/current/var'
+
+_project_databases: []
+_project_remove_databases: []

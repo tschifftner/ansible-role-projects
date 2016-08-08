@@ -1,0 +1,134 @@
+---
+- set_fact:
+#    project: '{{ item }}'
+#    working_dir: '/var/www/{{ item.name }}/{{ item.environment }}/releases/develop'
+#    projectstorage_dir: '/home/projectstorage/{{ item.name }}'
+    working_dir: '/var/www/{{ project.name }}/{{ project.environment }}/releases/develop'
+    projectstorage_dir: '/home/projectstorage/{{ project.name }}'
+    _project_requires_composer: false
+
+- name: Create project structure [default, writeable]
+  file:
+    path: '/var/www/{{ project.name }}/{{ project.environment }}/{{ item }}'
+    state: directory
+    owner: '{{ project.owner | default(project_default_owner) }}'
+    group: '{{ project.group | default(project_default_group) }}'
+    mode: '2775'
+  with_items: ['logs', 'releases']
+
+- name: Create project structure [default, world-writeable]
+  file:
+    path: '/var/www/{{ project.name }}/{{ project.environment }}/{{ item }}'
+    state: directory
+    owner: '{{ project.owner | default(project_default_owner) }}'
+    group: '{{ project.group | default(project_default_group) }}'
+    mode: '2777'
+  with_items: ['sessions', 'tmp']
+
+- name: Create project storage
+  file:
+    path: '{{ projectstorage_dir }}/{{ item }}'
+    state: directory
+    owner: '{{ project.owner | default(project_default_owner) }}'
+    group: '{{ project.group | default(project_default_group) }}'
+    mode: '2777'
+  with_items:
+    - '{{ project.environment }}/shared/media'
+    - '{{ project.environment }}/shared/var'
+    - 'production'
+    - 'bin/deploy'
+
+- name: Check if current symlink exists
+  register: _current_symlink
+  stat:
+    path: '/var/www/{{ project.name }}/{{ project.environment }}/releases/current'
+
+- name: Create dummy project structure [magento, default]
+  file:
+    path: '/var/www/{{ project.name }}/{{ project.environment }}/releases/build_dummy/htdocs'
+    state: directory
+    owner: '{{ project.owner | default(project_default_owner) }}'
+    group: '{{ project.group | default(project_default_group) }}'
+    mode: '00775'
+  when: _current_symlink.stat.islnk is not defined
+
+- name: Set symlink  [magento, default]
+  file:
+    src: '/var/www/{{ project.name }}/{{ project.environment }}/releases/build_dummy'
+    dest: '/var/www/{{ project.name }}/{{ project.environment }}/releases/current'
+    state: link
+  when: _current_symlink.stat.islnk is not defined
+
+- name: Create project structure [magento, writeable]
+  file:
+    path: '/var/www/{{ project.name }}/{{ project.environment }}/{{ item }}'
+    state: directory
+    owner: '{{ project.owner | default(project_default_owner) }}'
+    group: '{{ project.group | default(project_default_group) }}'
+    mode: '2777'
+  with_items: ['shared/media', 'shared/var']
+
+- name: Clone deploy script [magento]
+  git:
+    accept_hostkey: true
+    repo: '{{ project.deploy_scripts }}'
+    dest: '{{ projectstorage_dir }}/bin/deploy'
+    update: false
+    version: '{{ project.deploy_scripts_version | default(omit) }}'
+  become: "{{ project.owner | default(project_default_owner) }}"
+  when: project.deploy_scripts is defined
+
+#- name: Clone git repository [magento]
+#  git:
+#    accept_hostkey: true
+#    repo: '{{ project.git }}'
+#    dest: '{{ working_dir }}'
+#    update: false
+#    version: '{{ project.git_version | default(omit) }}'
+#  become: "{{ project.owner | default(project_default_owner) }}"
+#  when: project.git is defined
+#
+#- name: Check for composer.json file
+#  register: _project_requires_composer
+#  stat:
+#    path: '{{ working_dir }}/composer.json'
+#
+#
+#- name: Run composer install
+#  composer:
+#    command: 'install'
+#    arguments: '--verbose --no-ansi --no-interaction --prefer-source'
+#    working_dir: '{{ working_dir }}'
+#  become: "{{ project.owner | default(project_default_owner) }}"
+#
+#- name: Run modman
+#  command: modman deploy-all
+#  args:
+#    chdir: '{{ working_dir }}'
+#    creates: '{{ working_dir }}/htdocs/app/etc/local.xml'
+
+- name: Ensure magento snippet exists
+  notify: reload nginx
+  template:
+    src: "magento/magento.conf"
+    dest: "/etc/nginx/snippets/magento.conf"
+
+- name: Create nginx vhost [magento]
+  notify: reload nginx
+  template:
+    src: "{{ project.nginx_template | default('magento/nginx.conf') }}"
+    dest: '/etc/nginx/sites-enabled/{{ project.name }}'
+
+- name: Create php5-fpm vhost [magento]
+  notify: reload php5-fpm
+  template:
+    src: "{{ project.php_template if project.php_template is defined else 'magento/php5-fpm.conf' }}"
+    dest: '/etc/php5/fpm/pool.d/projects.{{ project.name }}.conf'
+
+- name: 'cronjob [magento]'
+  cron:
+    name: 'cronjob for {{ project.name }}'
+    minute: '*/1'
+    job: '(cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current/ && ./cron.sh >> var/log/magento.cron.log)'
+    cron_file: '{{ project.name }}'
+    user: '{{ project.owner | default(project_default_owner) }}'

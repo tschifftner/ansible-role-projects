@@ -1,0 +1,55 @@
+---
+
+- include: databases.yml
+  when: projects|length
+  tags: ['projects-databases']
+
+
+- include: project/default.yml
+  tags: ['projects-default']
+  when: projects|length and (project.type is not defined or project.type == 'default') and (project.remove is not defined or project.remove != true)
+  with_items: '{{ projects }}'
+  loop_control:
+    loop_var: project
+
+- include: project/magento.yml
+  tags: ['projects-magento']
+  when: projects|length and (project.type is defined and project.type == 'magento') and (project.remove is not defined or project.remove != true)
+  with_items: '{{ projects }}'
+  loop_control:
+    loop_var: project
+
+- include: project/magento2.yml
+  tags: ['projects-magento2']
+  when: projects|length and (project.type is defined and project.type == 'magento2') and (project.remove is not defined or project.remove != true)
+  with_items: '{{ projects }}'
+  loop_control:
+    loop_var: project
+
+- include: project/cleanup.yml
+  tags: ['projects-cleanup']
+  when: projects|length and project.remove is defined and project.remove == true
+  with_items: '{{ projects }}'
+  loop_control:
+    loop_var: project
+
+- include: awscli.yml
+  tags: ['projects-awscli']
+  when: projects|length
+  with_items: "{{ projects | selectattr('awscli', 'defined') | list }}"
+  loop_control:
+    loop_var: project
+
+- include: helper.yml
+  tags: ['projects-helper']
+  when: projects|length
+  with_items: "{{ projects | selectattr('helper', 'defined') | list }}"
+  loop_control:
+    loop_var: project
+
+- include: hosts.yml
+  tags: ['projects-hosts']
+  when: projects|length
+  with_items: "{{ projects }}"
+  loop_control:
+    loop_var: project

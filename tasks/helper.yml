@@ -1,0 +1,26 @@
+---
+
+- name: Protect programs to be overwritten by helpers
+  assert:
+    that:
+      - project.helper is defined
+      - project.name != 'ansible'
+      - project.name!= 'ansible-console'
+      - project.name!= 'ansible-doc'
+      - project.name!= 'ansible-galaxy'
+      - project.name!= 'ansible-playbook'
+      - project.name!= 'ansible-pull'
+      - project.name!= 'ansible-vault'
+      - project.name!= 'aws'
+      - project.name!= 'composer'
+      - project.name!= 'modman'
+      - project.name!= 'n98-magerun'
+      - project.name!= 'n98-magerun2'
+
+- name: create shell project sync helper
+  template:
+    src: 'helper/project-sync-wrapper.sh'
+    dest: '/usr/local/bin/{{ project.name }}'
+    mode: '0755'
+  when: project.helper is defined
+#  become: "{{ project.owner | default(project_default_owner) }}"

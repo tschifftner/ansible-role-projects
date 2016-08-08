@@ -1,0 +1,95 @@
+---
+#- set_fact:
+#    project: '{{ item }}'
+
+- name: Create project structure [default, writeable]
+  file:
+    path: '/var/www/{{ project.name }}/{{ project.environment }}/{{ item }}'
+    state: directory
+    owner: '{{ project.owner | default(project_default_owner) }}'
+    group: '{{ project.group | default(project_default_group) }}'
+    mode: '2775'
+  with_items: ['logs', 'releases']
+
+- name: Create project structure [default, world-writeable]
+  file:
+    path: '/var/www/{{ project.name }}/{{ project.environment }}/{{ item }}'
+    state: directory
+    owner: '{{ project.owner | default(project_default_owner) }}'
+    group: '{{ project.group | default(project_default_group) }}'
+    mode: '2777'
+  with_items: ['sessions', 'tmp']
+
+- name: Check if current symlink exists
+  register: _current_symlink
+  stat:
+    path: '/var/www/{{ project.name }}/{{ project.environment }}/releases/current'
+
+- name: Create dummy project structure [magento2, default]
+  file:
+    path: '/var/www/{{ project.name }}/{{ project.environment }}/releases/build_dummy/pub'
+    state: directory
+    owner: '{{ project.owner | default(project_default_owner) }}'
+    group: '{{ project.group | default(project_default_group) }}'
+    mode: '00775'
+  when: _current_symlink.stat.islnk is not defined
+
+- name: Set symlink  [magento2, default]
+  file:
+    src: '/var/www/{{ project.name }}/{{ project.environment }}/releases/build_dummy'
+    dest: '/var/www/{{ project.name }}/{{ project.environment }}/releases/current'
+    state: link
+  when: _current_symlink.stat.islnk is not defined
+
+- name: Create project structure  [magento2, writeable]
+  file:
+    path: '/var/www/{{ project.name }}/{{ project.environment }}/{{ item }}'
+    state: directory
+    owner: '{{ project.owner | default(project_default_owner) }}'
+    group: '{{ project.group | default(project_default_group) }}'
+    mode: '2777'
+  with_items: ['shared/media', 'shared/var', 'releases/current/pub/static']
+
+- name: Ensure magento snippet exists
+  notify: reload nginx
+  template:
+    src: "magento2/magento2.conf"
+    dest: "/etc/nginx/snippets/magento2.conf"
+
+- name: Create nginx vhost [magento2]
+  notify: reload nginx
+  template:
+    src: "{{ project.nginx_template | default('magento2/nginx.conf') }}"
+    dest: '/etc/nginx/sites-enabled/{{ project.name }}'
+
+- name: Create php5-fpm vhost [magento2]
+  notify: reload php5-fpm
+  template:
+    src: "{{ project.php_template if project.php_template is defined else 'magento2/php5-fpm.conf' }}"
+    dest: '/etc/php5/fpm/pool.d/projects.{{ project.name }}.conf'
+
+- name: 'set 1. cronjob [magento2]'
+  cron:
+    name: '1. cronjob {{ project.name }}'
+    minute: '*/1'
+    job: '(cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current/ && /usr/bin/php bin/magento cron:run | grep -v "Ran jobs by schedule" >> var/log/magento.cron.log)'
+    cron_file: '{{ project.name }}'
+    user: 'vagrant'
+
+- name: 'set 2. cronjob [magento2]'
+  cron:
+    name: '2. cronjob {{ project.name }}'
+    minute: '*/1'
+    #job: '/usr/bin/php /var/www/{{ project.name }}/{{ project.environment }}/releases/current/update/cron.php [>> /log/file &]'
+    job: '(cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current/ && /usr/bin/php update/cron.php >> var/log/update.cron.log)'
+    cron_file: '{{ project.name }}'
+    user: 'vagrant'
+
+- name: 'set 3. cronjob [magento2]'
+  cron:
+    name: '3. cronjob {{ project.name }}'
+    minute: '*/1'
+    #job: '/usr/bin/php /var/www/{{ project.name }}/{{ project.environment }}/releases/current/bin/magento setup:cron:run [>> /log/file &'
+    job: '(cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current/ && /usr/bin/php bin/magento setup:cron:run >> var/log/setup.cron.log)'
+    cron_file: '{{ project.name }}'
+    user: 'vagrant'

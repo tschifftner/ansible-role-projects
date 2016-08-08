@@ -1,0 +1,94 @@
+---
+sudo: required
+dist: trusty
+
+language: python
+python: "2.7"
+
+env:
+  - SITE=test.yml ANSIBLE_VERSION=latest
+#  - SITE=test.yml ANSIBLE_VERSION=2.1.0.0
+
+branches:
+  only:
+    - master
+
+addons:
+  mariadb: '10.1'
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y curl nginx php5 php5-cli php5-fpm php5-curl php5-imap php5-xmlrpc php5-mysqlnd
+  - curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
+
+install:
+  # Install Ansible.
+  - if [ "$ANSIBLE_VERSION" = "latest" ]; then pip install --no-binary ansible ansible; else pip install --no-binary ansible ansible==$ANSIBLE_VERSION; fi
+
+  # Add ansible.cfg to pick up roles path.
+  - "{ echo '[defaults]'; echo 'roles_path = ../'; } >> ansible.cfg"
+
+  # Install ansible-lint
+  - pip install ansible-lint
+
+before_script:
+  - mysql -u root -e "CREATE DATABASE travis;"
+  - mysql -u root -e "GRANT SELECT,INSERT,UPDATE,DELETE ON travis.* TO 'travis'@'127.0.0.1' IDENTIFIED BY 'tr4v1s';"
+
+script:
+  # Check the role/playbook's syntax.
+  - "ansible-playbook -i tests/inventory tests/$SITE --syntax-check"
+
+  # Run the role/playbook with ansible-playbook.
+  - "ansible-playbook -i tests/inventory tests/$SITE --connection=local --sudo"
+
+  # Run the role/playbook again, checking to make sure it's idempotent.
+  - >
+    ansible-playbook -i tests/inventory tests/$SITE --connection=local --sudo
+    | grep -q 'changed=0.*failed=0'
+    && (echo 'Idempotence test: pass' && exit 0)
+    || (echo 'Idempotence test: fail' && exit 1)
+
+  # ansible-lint checks for best practice
+  - ansible-lint tests/$SITE
+
+  # simple checks (@todo add proper tests)
+  - test -e /var/www/magentodemo/devbox/shared/media
+  - test -e /var/www/magentodemo/devbox/shared/var
+  - test -e /var/www/magentodemo/devbox/releases/current/htdocs
+
+  - test -e /var/www/magento2demo/devbox/shared/media
+  - test -e /var/www/magento2demo/devbox/shared/var
+  - test -e /var/www/magento2demo/devbox/releases/current/pub
+
+  - test -e /opt/roundcube/sessions
+  - test -e /opt/roundcube/tmp
+  - test -e /opt/roundcube/usr
+
+  - test -e /etc/nginx/sites-enabled/magentodemo
+  - test -e /etc/nginx/sites-enabled/magento2demo
+  - test -e /etc/php5/fpm/pool.d/projects.magentodemo.conf
+  - test -e /etc/php5/fpm/pool.d/projects.magento2demo.conf
+
+
+  - curl http://localhost | grep 'PHP'
+#  - if [[ "$SITE" == "test-without-ssl.yml" ]]; then curl http://localhost | grep 'ambimax® RoundCube'; fi
+
+after_failure:
+  - ansible-playbook -i tests/inventory tests/$SITE --connection=local --sudo
+  - sudo service nginx status
+  - ansible --version
+  - curl http://127.0.0.1/
+  - curl http://localhost/
+  - nginx -v
+  - sudo nginx -t
+  - sudo ls -lh /opt/roundcube/
+  - composer -v
+  - sudo cat /etc/nginx/sites-enabled/magentodemo
+  - sudo cat /etc/nginx/sites-enabled/magento2demo
+  - sudo cat /etc/php5/fpm/pool.d/projects.magentodemo.conf
+  - sudo cat /etc/php5/fpm/pool.d/projects.magento2demo.conf
+
+notifications:
+  slack: ambimax:2MlPTX9bY9aPxCPhJGxHKIT6
+  webhooks: https://galaxy.ansible.com/api/v1/notifications/
