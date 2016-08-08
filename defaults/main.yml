@@ -33,3 +33,4 @@ project_magento2_symlinks:
 
 _project_databases: []
 _project_remove_databases: []
+_project_database_users: []
