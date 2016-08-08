@@ -72,12 +72,16 @@ script:
   - test -e /etc/php5/fpm/pool.d/projects.magentodemo.conf
   - test -e /etc/php5/fpm/pool.d/projects.magento2demo.conf
 
+  - grep 'magento2demo.local' /etc/hosts
+
   - curl http://magentodemo.local | grep 'PHP'
   - curl http://magento2demo.local | grep 'PHP'
 
 after_failure:
   - ansible-playbook -i tests/inventory tests/$SITE --connection=local --sudo
   - sudo service nginx status
+  - sudo service php5-fpm status
+  - sudo service php5-fpm restart
   - ansible --version
   - curl http://127.0.0.1/
   - curl http://localhost/
