@@ -34,6 +34,7 @@ install:
 before_script:
   - mysql -u root -e "CREATE DATABASE travis;"
   - mysql -u root -e "GRANT SELECT,INSERT,UPDATE,DELETE ON travis.* TO 'travis'@'127.0.0.1' IDENTIFIED BY 'tr4v1s';"
+  - service php5-fpm start
 
 script:
   # Check the role/playbook's syntax.
@@ -82,6 +83,7 @@ after_failure:
   - sudo service nginx status
   - sudo service php5-fpm status
   - sudo service php5-fpm restart
+  - sudo service php5-fpm status
   - ansible --version
   - curl http://127.0.0.1/
   - curl http://localhost/
