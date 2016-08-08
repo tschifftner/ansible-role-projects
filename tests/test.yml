@@ -34,7 +34,9 @@
       copy:
         content: '<?php phpinfo();'
         dest: '{{ item }}'
-        mode: '0644'
+        mode: '0755'
+        owner: 'travis'
+        group: 'www-data'
       with_items:
         - '/var/www/magentodemo/devbox/releases/current/htdocs/index.php'
         - '/var/www/magento2demo/devbox/releases/current/pub/index.php'

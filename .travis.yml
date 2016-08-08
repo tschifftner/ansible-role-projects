@@ -60,12 +60,12 @@ script:
   - test -e /var/www/magentodemo/devbox/shared/var
   - test -e /var/www/magentodemo/devbox/tmp
 
-  - test -e /var/www/magento2demo/logs
+  - test -e /var/www/magento2demo/devbox/logs
   - test -e /var/www/magento2demo/devbox/releases/current/pub
-  - test -e /var/www/magento2demo/sessions
+  - test -e /var/www/magento2demo/devbox/sessions
   - test -e /var/www/magento2demo/devbox/shared/media
   - test -e /var/www/magento2demo/devbox/shared/var
-  - test -e /var/www/magento2demo/tmp
+  - test -e /var/www/magento2demo/devbox/tmp
 
   - test -e /etc/nginx/sites-enabled/magentodemo
   - test -e /etc/nginx/sites-enabled/magento2demo
