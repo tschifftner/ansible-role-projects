@@ -23,7 +23,7 @@
     state: directory
     owner: '{{ project.owner | default(project_default_owner) }}'
     group: '{{ project.group | default(project_default_group) }}'
-    mode: '2777'
+    mode: '02777'
   with_items: ['sessions', 'tmp']
 
 - name: Create project storage
