@@ -83,8 +83,10 @@ after_failure:
   - curl http://localhost/
   - nginx -v
   - sudo nginx -t
-  - sudo ls -lh /opt/roundcube/
+  - sudo php5-fpm -t
+  - sudo ls -lh /var/run/
   - composer -v
+  - sudo cat /etc/hosts
   - sudo cat /etc/nginx/sites-enabled/magentodemo
   - sudo cat /etc/nginx/sites-enabled/magento2demo
   - sudo cat /etc/php5/fpm/pool.d/projects.magentodemo.conf
