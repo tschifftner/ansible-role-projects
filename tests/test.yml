@@ -36,5 +36,5 @@
         dest: '{{ item }}'
         mode: '0644'
       with_items:
-        - 'var/www/magentodemo/devbox/releases/current/htdocs/index.php'
-        - 'var/www/magento2demo/devbox/releases/current/pub/index.php'
+        - '/var/www/magentodemo/devbox/releases/current/htdocs/index.php'
+        - '/var/www/magento2demo/devbox/releases/current/pub/index.php'
