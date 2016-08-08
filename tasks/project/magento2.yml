@@ -50,6 +50,11 @@
     mode: '02777'
   with_items: ['shared/media', 'shared/var', 'releases/current/pub/static']
 
+- name: Ensure magento snippet dir exists
+  file:
+    path: /etc/nginx/snippets/
+    state: directory
+
 - name: Ensure magento snippet exists
   notify: reload nginx
   template:

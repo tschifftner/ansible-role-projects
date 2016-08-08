@@ -108,6 +108,11 @@
 #    chdir: '{{ working_dir }}'
 #    creates: '{{ working_dir }}/htdocs/app/etc/local.xml'
 
+- name: Ensure magento snippet dir exists
+  file:
+    path: /etc/nginx/snippets/
+    state: directory
+
 - name: Ensure magento snippet exists
   notify: reload nginx
   template:
