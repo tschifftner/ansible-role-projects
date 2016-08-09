@@ -34,7 +34,6 @@ install:
 before_script:
   - mysql -u root -e "CREATE DATABASE travis;"
   - mysql -u root -e "GRANT SELECT,INSERT,UPDATE,DELETE ON travis.* TO 'travis'@'127.0.0.1' IDENTIFIED BY 'tr4v1s';"
-  - service php5-fpm start
 
 script:
   # Check the role/playbook's syntax.
@@ -73,6 +72,7 @@ script:
   - test -e /etc/php5/fpm/pool.d/projects.magentodemo.conf
   - test -e /etc/php5/fpm/pool.d/projects.magento2demo.conf
 
+  - grep 'magentodemo.local' /etc/hosts
   - grep 'magento2demo.local' /etc/hosts
 
   - curl http://magentodemo.local | grep 'PHP'
@@ -97,6 +97,8 @@ after_failure:
   - sudo cat /etc/nginx/sites-enabled/magento2demo
   - sudo cat /etc/php5/fpm/pool.d/projects.magentodemo.conf
   - sudo cat /etc/php5/fpm/pool.d/projects.magento2demo.conf
+  - sudo cat /var/www/magentodemo/devbox/logs/nginx_error.log
+  - sudo cat /var/www/magento2demo/devbox/logs/nginx_error.log
   - curl http://magentodemo.local
   - curl http://magento2demo.local
 

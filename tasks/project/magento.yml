@@ -135,6 +135,6 @@
   cron:
     name: 'cronjob for {{ project.name }}'
     minute: '*/1'
-    job: '(cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current/ && ./cron.sh >> var/log/magento.cron.log)'
+    job: '(cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current/htdocs/ && ./cron.sh >> var/log/magento.cron.log)'
     cron_file: '{{ project.name }}'
     user: '{{ project.owner | default(project_default_owner) }}'
