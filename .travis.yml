@@ -53,30 +53,27 @@ script:
   - ansible-lint tests/$SITE
 
   # simple checks (@todo add proper tests)
+  - test -e /etc/nginx/sites-enabled/magentodemo
+  - test -e /etc/php5/fpm/pool.d/projects.magentodemo.conf
   - test -e /var/www/magentodemo/devbox/logs
   - test -e /var/www/magentodemo/devbox/releases/current/htdocs
   - test -e /var/www/magentodemo/devbox/sessions
   - test -e /var/www/magentodemo/devbox/shared/media
   - test -e /var/www/magentodemo/devbox/shared/var
   - test -e /var/www/magentodemo/devbox/tmp
-
-  - test -e /var/www/magento2demo/devbox/logs
-  - test -e /var/www/magento2demo/devbox/releases/current/pub
-  - test -e /var/www/magento2demo/devbox/sessions
-  - test -e /var/www/magento2demo/devbox/shared/media
-  - test -e /var/www/magento2demo/devbox/shared/var
-  - test -e /var/www/magento2demo/devbox/tmp
-
-  - test -e /etc/nginx/sites-enabled/magentodemo
-  - test -e /etc/nginx/sites-enabled/magento2demo
-  - test -e /etc/php5/fpm/pool.d/projects.magentodemo.conf
-  - test -e /etc/php5/fpm/pool.d/projects.magento2demo.conf
-
   - grep 'magentodemo.local' /etc/hosts
-  - grep 'magento2demo.local' /etc/hosts
-
   - curl http://magentodemo.local | grep 'PHP'
-  - curl http://magento2demo.local | grep 'PHP'
+
+#  - test -e /etc/nginx/sites-enabled/magento2demo
+#  - test -e /etc/php5/fpm/pool.d/projects.magento2demo.conf
+#  - test -e /var/www/magento2demo/devbox/logs
+#  - test -e /var/www/magento2demo/devbox/releases/current/pub
+#  - test -e /var/www/magento2demo/devbox/sessions
+#  - test -e /var/www/magento2demo/devbox/shared/media
+#  - test -e /var/www/magento2demo/devbox/shared/var
+#  - test -e /var/www/magento2demo/devbox/tmp
+#  - grep 'magento2demo.local' /etc/hosts
+#  - curl http://magento2demo.local | grep 'PHP'
 
 after_failure:
   - ansible-playbook -i tests/inventory tests/$SITE --connection=local --sudo
