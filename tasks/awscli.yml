@@ -1,20 +1,26 @@
-
-- name: Collect credentials
-  set_fact:
-    _aws_credentials: '{{ (_aws_credentials | default([])) + item.awscli | list }}'
-  when: item.awscli is defined and item.awscli|length
-  with_items: '{{ projects }}'
+---
 
 - name: Ensure aws config folder exists
   file:
     path: ~/.aws
     state: directory
-  when: _aws_credentials is defined and _aws_credentials|length
+  when: project.awscli|length
   become: "{{ project.owner | default(project_default_owner) }}"
 
+
 - name: Set aws config
-  template:
-    src: aws/config
+  blockinfile:
     dest: ~/.aws/credentials
-  when: _aws_credentials is defined and _aws_credentials|length
+    marker: "# {mark} {{ item.profilename }}"
+    #insertafter: "<body>"
+    content: |
+      [{{ item.profilename }}]
+      {% for key, value in item.iteritems() %}
+      {% if key != 'profilename' %}
+      {{ key }}={{ value }}
+      {% endif %}
+      {% endfor %}
+
+  when: project.awscli|length
+  with_items: '{{ project.awscli }}'
   become: "{{ project.owner | default(project_default_owner) }}"

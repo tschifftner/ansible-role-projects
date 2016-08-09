@@ -4,6 +4,7 @@
 #    project: '{{ item }}'
 #    working_dir: '/var/www/{{ item.name }}/{{ item.environment }}/releases/develop'
 #    projectstorage_dir: '/home/projectstorage/{{ item.name }}'
+    root_dir: '/var/www/{{ project.name }}/{{ project.environment }}/releases/current/htdocs'
     working_dir: '/var/www/{{ project.name }}/{{ project.environment }}/releases/develop'
     projectstorage_dir: '/home/projectstorage/{{ project.name }}'
     _project_requires_composer: false
@@ -135,6 +136,7 @@
   cron:
     name: 'cronjob for {{ project.name }}'
     minute: '*/1'
-    job: '(cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current/htdocs/ && ./cron.sh >> var/log/magento.cron.log)'
+    #job: '(cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current/htdocs/ && ./cron.sh >> var/log/magento.cron.log)'
+    job: '/bin/sh {{ root_dir }}/cron.sh &>> {{ root_dir }}/var/log/cron.log'
     cron_file: '{{ project.name }}'
     user: '{{ project.owner | default(project_default_owner) }}'

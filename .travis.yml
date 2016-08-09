@@ -84,6 +84,8 @@ after_failure:
   - sudo service php5-fpm status
   - sudo service php5-fpm restart
   - sudo service php5-fpm status
+  - sudo service php5-fpm start
+  - sudo service php5-fpm status
   - ansible --version
   - curl http://127.0.0.1/
   - curl http://localhost/
