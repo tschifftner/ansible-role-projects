@@ -20,6 +20,7 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -y curl nginx php5 php5-cli php5-fpm php5-curl php5-imap php5-xmlrpc php5-mysqlnd software-properties-common python-mysqldb
   - curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
+  - sudo rm -f /etc/php5/fpm/pool.d/www.conf
 
 install:
   # Install Ansible.
