@@ -108,6 +108,7 @@ after_failure:
   - sudo cat /var/www/magento2demo/devbox/releases/current/pub/index.php
   - curl http://magentodemo.local
   - curl http://magento2demo.local
+  - sudo cat /etc/init/php5-fpm.conf
 
 notifications:
   slack: ambimax:2MlPTX9bY9aPxCPhJGxHKIT6
