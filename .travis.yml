@@ -64,16 +64,16 @@ script:
   - grep 'magentodemo.local' /etc/hosts
   - curl http://magentodemo.local | grep 'PHP'
 
-#  - test -e /etc/nginx/sites-enabled/magento2demo
-#  - test -e /etc/php5/fpm/pool.d/projects.magento2demo.conf
-#  - test -e /var/www/magento2demo/devbox/logs
-#  - test -e /var/www/magento2demo/devbox/releases/current/pub
-#  - test -e /var/www/magento2demo/devbox/sessions
-#  - test -e /var/www/magento2demo/devbox/shared/media
-#  - test -e /var/www/magento2demo/devbox/shared/var
-#  - test -e /var/www/magento2demo/devbox/tmp
-#  - grep 'magento2demo.local' /etc/hosts
-#  - curl http://magento2demo.local | grep 'PHP'
+  - test -e /etc/nginx/sites-enabled/magento2demo
+  - test -e /etc/php5/fpm/pool.d/projects.magento2demo.conf
+  - test -e /var/www/magento2demo/devbox/logs
+  - test -e /var/www/magento2demo/devbox/releases/current/pub
+  - test -e /var/www/magento2demo/devbox/sessions
+  - test -e /var/www/magento2demo/devbox/shared/media
+  - test -e /var/www/magento2demo/devbox/shared/var
+  - test -e /var/www/magento2demo/devbox/tmp
+  - grep 'magento2demo.local' /etc/hosts
+  - curl http://magento2demo.local | grep 'PHP'
 
 after_failure:
   - ansible-playbook -i tests/inventory tests/$SITE --connection=local --sudo
@@ -99,6 +99,10 @@ after_failure:
   - sudo cat /etc/php5/fpm/pool.d/projects.magento2demo.conf
   - sudo cat /var/www/magentodemo/devbox/logs/nginx_error.log
   - sudo cat /var/www/magento2demo/devbox/logs/nginx_error.log
+  - sudo cat /var/log/php5-fpm.log
+  - sudo tail -n100 /var/log/syslog
+  - sudo cat /var/www/magentodemo/devbox/logs/php_errors.log
+  - sudo cat /var/www/magento2demo/devbox/logs/php_errors.log
   - sudo cat /var/www/magentodemo/devbox/releases/current/htdocs/index.php
   - sudo cat /var/www/magento2demo/devbox/releases/current/pub/index.php
   - curl http://magentodemo.local

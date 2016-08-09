@@ -53,3 +53,18 @@
   with_items: "{{ projects }}"
   loop_control:
     loop_var: project
+
+- name: Ensure php5-fpm is started
+  service:
+    name: 'php5-fpm'
+    state: started
+    enabled: yes
+  changed_when: false # required for idempotence
+
+- name: Ensure nginx is started
+  service:
+    name: 'nginx'
+    state: started
+    enabled: yes
+  changed_when: false # required for idempotence
+
