@@ -99,6 +99,8 @@ after_failure:
   - sudo cat /etc/php5/fpm/pool.d/projects.magento2demo.conf
   - sudo cat /var/www/magentodemo/devbox/logs/nginx_error.log
   - sudo cat /var/www/magento2demo/devbox/logs/nginx_error.log
+  - sudo cat /var/www/magentodemo/devbox/releases/current/htdocs/index.php
+  - sudo cat /var/www/magento2demo/devbox/releases/current/pub/index.php
   - curl http://magentodemo.local
   - curl http://magento2demo.local
 
