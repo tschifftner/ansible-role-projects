@@ -93,6 +93,7 @@ after_failure:
   - sudo ls -lh /var/run/
   - composer -v
   - sudo cat /etc/hosts
+  - sudo cat /etc/nginx/nginx.conf
   - sudo cat /etc/nginx/sites-enabled/magentodemo
   - sudo cat /etc/nginx/sites-enabled/magento2demo
   - sudo cat /etc/php5/fpm/pool.d/projects.magentodemo.conf
