@@ -1,74 +1,137 @@
 ---
 - name: Set magento facts
   set_fact:
-#    project: '{{ item }}'
-#    working_dir: '/var/www/{{ item.name }}/{{ item.environment }}/releases/develop'
-#    projectstorage_dir: '/home/projectstorage/{{ item.name }}'
+    project_dir: '/var/www/{{ project.name }}/{{ project.environment }}'
     root_dir: '/var/www/{{ project.name }}/{{ project.environment }}/releases/current/htdocs'
-    working_dir: '/var/www/{{ project.name }}/{{ project.environment }}/releases/develop'
+    #working_dir: '/var/www/{{ project.name }}/{{ project.environment }}/releases/develop'
     projectstorage_dir: '/home/projectstorage/{{ project.name }}'
+    #owner: '{{ project.owner if project.owner is defined else (project_default_owner | default(project.name + "-" + project.environment)) }}'
+#    owner: '{{ project.name }}-{{ project.environment }}'
+#    group: '{{ project.name }}-{{ project.environment }}'
+    owner: '{{ project.owner if project.owner is defined else project.name }}'
+    group: '{{ project.group if project.group is defined else project.name }}'
+#    directories:
+#      - { path: '{{ project_dir }}/logs', mode: '02775' }
+#      - { path: '{{ project_dir }}/releases', mode: '02775' }
+#      - { path: '{{ project_dir }}/sessions', mode: '02777' }
+#      - { path: '{{ project_dir }}/tmp', mode: '02777' }
+#      - { path: '{{ project_dir }}/shared/media', mode: '02777' }
+#      - { path: '{{ project_dir }}/shared/var', mode: '02777' }
+#      - { path: '{{ projectstorage_dir }}/{{ project.environment }}/shared/media', mode: '02777' }
+#      - { path: '{{ projectstorage_dir }}/{{ project.environment }}/shared/var', mode: '02777' }
+#      - { path: '{{ projectstorage_dir }}/production', mode: '02777' }
+#      - { path: '{{ projectstorage_dir }}/bin/deploy', mode: '02777' }
     _project_requires_composer: false
 
-- name: Create project structure [default, writeable]
-  file:
-    path: '/var/www/{{ project.name }}/{{ project.environment }}/{{ item }}'
-    state: directory
-    owner: '{{ project.owner | default(project_default_owner) }}'
-    group: '{{ project.group | default(project_default_group) }}'
-    mode: '02775'
-  with_items: ['logs', 'releases']
+- name: set custom owner
+  set_fact:
+    owner: '{{ project_default_owner }}'
+  when: project.owner is not defined and project_default_owner != ''
 
-- name: Create project structure [default, world-writeable]
-  file:
-    path: '/var/www/{{ project.name }}/{{ project.environment }}/{{ item }}'
-    state: directory
-    owner: '{{ project.owner | default(project_default_owner) }}'
-    group: '{{ project.group | default(project_default_group) }}'
-    mode: '02777'
-  with_items: ['sessions', 'tmp']
+- name: set custom group
+  set_fact:
+    group: '{{ project_default_group }}'
+  when: project.group is not defined and project_default_group != ''
 
-- name: Create project storage
+- name: Ensure group exists
+  group:
+    name: '{{ group }}'
+
+- name: Ensure user exists
+  user:
+    name: '{{ owner }}'
+    shell: /bin/bash
+    group: '{{ group }}'
+    append: yes
+
+- name: Create project structure
   file:
-    path: '{{ projectstorage_dir }}/{{ item }}'
+    path: '{{ item.path }}'
     state: directory
-    owner: '{{ project.owner | default(project_default_owner) }}'
-    group: '{{ project.group | default(project_default_group) }}'
-    mode: '02777'
-  with_items:
-    - '{{ project.environment }}/shared/media'
-    - '{{ project.environment }}/shared/var'
-    - 'production'
-    - 'bin/deploy'
+    owner: '{{ owner }}'
+    group: '{{ group }}'
+    mode: '{{ item.mode }}'
+  with_items: #'{{ directories }}'
+    - { path: '{{ project_dir }}/logs', mode: '02775' }
+    - { path: '{{ project_dir }}/releases', mode: '02775' }
+    - { path: '{{ project_dir }}/sessions', mode: '02777' }
+    - { path: '{{ project_dir }}/tmp', mode: '02777' }
+    - { path: '{{ project_dir }}/shared', mode: '02777' }
+    - { path: '{{ project_dir }}/shared/media', mode: '02777' }
+    - { path: '{{ project_dir }}/shared/var', mode: '02777' }
+    - { path: '{{ projectstorage_dir }}/{{ project.environment }}/shared/media', mode: '02777' }
+    - { path: '{{ projectstorage_dir }}/{{ project.environment }}/shared/var', mode: '02777' }
+    - { path: '{{ projectstorage_dir }}/production', mode: '02777' }
+    - { path: '{{ projectstorage_dir }}/bin/deploy', mode: '02777' }
+
+#- name: Create project structure [default, writeable]
+#  file:
+#    path: '{{ project_dir }}/{{ item }}'
+#    state: directory
+#    owner: '{{ owner }}'
+#    group: '{{ group }}'
+#    mode: '02775'
+#  with_items: ['logs', 'releases']
+#
+#- name: Create project structure [default, world-writeable]
+#  file:
+#    path: '{{ project_dir }}/{{ item }}'
+#    state: directory
+#    owner: '{{ owner }}'
+#    group: '{{ group }}'
+#    mode: '02777'
+#  with_items: ['sessions', 'tmp']
+#
+#- name: Create project storage
+#  file:
+#    path: '{{ projectstorage_dir }}/{{ item }}'
+#    state: directory
+#    owner: '{{ owner }}'
+#    group: '{{ group }}'
+#    mode: '02777'
+#  with_items:
+#    - '{{ project.environment }}/shared/media'
+#    - '{{ project.environment }}/shared/var'
+#    - 'production'
+#    - 'bin/deploy'
 
 - name: Check if current symlink exists
   register: _current_symlink
   stat:
-    path: '/var/www/{{ project.name }}/{{ project.environment }}/releases/current'
+    path: '{{ project_dir }}/releases/current'
 
 - name: Create dummy project structure [magento, default]
   file:
-    path: '/var/www/{{ project.name }}/{{ project.environment }}/releases/build_dummy/htdocs'
+    path: '{{ project_dir }}/releases/build_dummy/htdocs'
     state: directory
-    owner: '{{ project.owner | default(project_default_owner) }}'
-    group: '{{ project.group | default(project_default_group) }}'
+    owner: '{{ owner }}'
+    group: '{{ group }}'
     mode: '00775'
   when: _current_symlink.stat.islnk is not defined
 
+- name: Add dummy index.php
+  copy:
+    content: '<?php phpinfo();'
+    dest: '{{ project_dir }}/releases/build_dummy/htdocs/index.php'
+    mode: '0755'
+    owner: '{{ owner }}'
+    group: '{{ group }}'
+
 - name: Set symlink  [magento, default]
   file:
-    src: '/var/www/{{ project.name }}/{{ project.environment }}/releases/build_dummy'
-    dest: '/var/www/{{ project.name }}/{{ project.environment }}/releases/current'
+    src: '{{ project_dir }}/releases/build_dummy'
+    dest: '{{ project_dir }}/releases/current'
     state: link
   when: _current_symlink.stat.islnk is not defined
 
-- name: Create project structure [magento, writeable]
-  file:
-    path: '/var/www/{{ project.name }}/{{ project.environment }}/{{ item }}'
-    state: directory
-    owner: '{{ project.owner | default(project_default_owner) }}'
-    group: '{{ project.group | default(project_default_group) }}'
-    mode: '02777'
-  with_items: ['shared/media', 'shared/var']
+#- name: Create project structure [magento, writeable]
+#  file:
+#    path: '{{ project_dir }}/{{ item }}'
+#    state: directory
+#    owner: '{{ owner }}'
+#    group: '{{ group }}'
+#    mode: '02777'
+#  with_items: ['shared/media', 'shared/var']
 
 - name: Clone deploy script [magento]
   git:
@@ -77,7 +140,7 @@
     dest: '{{ projectstorage_dir }}/bin/deploy'
     update: false
     version: '{{ project.deploy_scripts_version | default(omit) }}'
-  become: "{{ project.owner | default(project_default_owner) }}"
+  become: "{{ owner }}"
   when: project.deploy_scripts is defined
 
 #- name: Clone git repository [magento]
@@ -87,7 +150,7 @@
 #    dest: '{{ working_dir }}'
 #    update: false
 #    version: '{{ project.git_version | default(omit) }}'
-#  become: "{{ project.owner | default(project_default_owner) }}"
+#  become: "{{ owner }}"
 #  when: project.git is defined
 #
 #- name: Check for composer.json file
@@ -101,7 +164,7 @@
 #    command: 'install'
 #    arguments: '--verbose --no-ansi --no-interaction --prefer-source'
 #    working_dir: '{{ working_dir }}'
-#  become: "{{ project.owner | default(project_default_owner) }}"
+#  become: "{{ owner }}"
 #
 #- name: Run modman
 #  command: modman deploy-all
@@ -124,19 +187,19 @@
   notify: reload nginx
   template:
     src: "{{ project.nginx_template | default('magento/nginx.conf') }}"
-    dest: '/etc/nginx/sites-enabled/{{ project.name }}'
+    dest: '/etc/nginx/sites-enabled/{{ project.name }}.{{ project.environment }}'
 
 - name: Create php5-fpm vhost [magento]
   notify: reload php5-fpm
   template:
     src: "{{ project.php_template if project.php_template is defined else 'magento/php5-fpm.conf' }}"
-    dest: '/etc/php5/fpm/pool.d/projects.{{ project.name }}.conf'
+    dest: '/etc/php5/fpm/pool.d/projects.{{ project.name }}.{{ project.environment }}.conf'
 
 - name: 'cronjob [magento]'
   cron:
-    name: 'cronjob for {{ project.name }}'
+    name: 'cronjob for {{ project.name }} {{ project.environment }}'
     minute: '*/1'
-    #job: '(cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current/htdocs/ && ./cron.sh >> var/log/magento.cron.log)'
+    #job: '(cd {{ project_dir }}/releases/current/htdocs/ && ./cron.sh >> var/log/magento.cron.log)'
     job: '/bin/sh {{ root_dir }}/cron.sh &>> {{ root_dir }}/var/log/cron.log'
-    cron_file: '{{ project.name }}'
-    user: '{{ project.owner | default(project_default_owner) }}'
+    cron_file: '{{ project.name }}.{{ project.environment }}'
+    user: '{{ owner }}'

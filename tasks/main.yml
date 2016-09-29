@@ -47,10 +47,24 @@
   loop_control:
     loop_var: project
 
+#- include: acl.yml
+#  tags: ['projects-acl']
+#  when: projects|length
+#  with_items: "{{ projects | selectattr('name', 'defined') | list }}"
+#  loop_control:
+#    loop_var: project
+
 - include: hosts.yml
   tags: ['projects-hosts']
   when: projects|length
   with_items: "{{ projects | selectattr('server_alias', 'defined') | list }}"
+  loop_control:
+    loop_var: project
+
+- include: mageruncodes.yml
+  tags: ['projects-mageruncodes']
+  when: projects|length
+  with_items: "{{ projects | selectattr('mageruncodes', 'defined') | list }}"
   loop_control:
     loop_var: project
 

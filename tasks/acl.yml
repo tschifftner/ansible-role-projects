@@ -1,0 +1,21 @@
+---
+
+- name: Grant whole group access to all files
+  acl:
+    path: '/var/www/{{ project.name }}/'
+    default: yes
+    entity: developer
+    permissions: 'rwx'
+    etype: group
+    recursive: yes
+    state: present
+    follow: yes
+
+- name: Grant whole group access to all files
+  acl:
+    path: '/var/www/{{ project.name }}/'
+    default: yes
+    permissions: 'rwx'
+    etype: user
+    recursive: yes
+    state: present

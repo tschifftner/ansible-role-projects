@@ -1,0 +1,16 @@
+---
+
+- name: 'Collect all magento run codes'
+  set_fact:
+    _project_mageruncodes: '{{ (_project_mageruncodes | default([])) + item.mageruncodes | list }}'
+  when: (item.remove is not defined or item.remove != true)
+  with_items: "{{ projects | selectattr('mageruncodes', 'defined') | list }}"
+
+- name: Set magento run codes
+  template:
+    src: 'mageruncodes.conf'
+    dest: '/etc/nginx/conf.d/'
+    owner: root
+    group: root
+    mode: '0644'
+    

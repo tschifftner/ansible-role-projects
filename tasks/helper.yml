@@ -17,9 +17,14 @@
       - project.name!= 'n98-magerun'
       - project.name!= 'n98-magerun2'
 
+- name: remove deprecated helper
+  file:
+    path: '/usr/local/bin/{{ project.name }}'
+    state: absent
+
 - name: create shell project sync helper
   template:
     src: 'helper/project-sync-wrapper.sh'
-    dest: '/usr/local/bin/{{ project.name }}'
+    dest: '/usr/local/bin/{{ project.name }}-{{ project.environment }}'
     mode: '0755'
   when: project.helper is defined
