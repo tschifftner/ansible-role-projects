@@ -1,0 +1,131 @@
+---
+
+- name: 'Set facts ({{ project.name }}.{{ project.environment }})'
+  set_fact:
+    project_dir: '/var/www/{{ project.name }}/{{ project.environment }}'
+    root_dir: '/var/www/{{ project.name }}/{{ project.environment }}/releases/current/htdocs'
+    projectstorage_dir: '/home/projectstorage/{{ project.name }}'
+    owner: '{{ project.owner if project.owner is defined else project.environment }}'
+    group: '{{ project.group if project.group is defined else project.name }}'
+    _project_ssl_dir: '/var/www/{{ project.name }}/{{ project.environment }}/.ssl'
+    _php5: "{{ true if project.php is defined and project.php == 5 else false }}"
+    _php7: "{{ true if project.php is not defined or project.php == 7 else false }}"
+    # _php_pool: "{{ '/etc/php5/fpm/pool.d' if project.php is defined and project.php == 5 else '/etc/php/7.0/fpm/pool.d'}}"
+    _project_requires_composer: false
+    storage_owner: '{{ project.storage_owner | default(project_storage_owner) }}'
+    project_snippet: ''
+    nginx_template: ''
+    php_template: ''
+    dummy_path: '/var/www/{{ project.name }}/{{ project.environment }}/releases/build_dummy/htdocs/index.php'
+
+# - name: Set default type
+#   set_fact:
+#     project.type: 'default'
+#   when: project.type is not defined
+
+- name: set custom owner
+  set_fact:
+    owner: '{{ project_default_owner }}'
+  when: project.owner is not defined and project_default_owner != ''
+
+- name: set custom group
+  set_fact:
+    group: '{{ project_default_group }}'
+  when: project.group is not defined and project_default_group != ''
+
+- name: Ensure group exists
+  group:
+    name: '{{ group }}'
+
+- name: Ensure project main folder exists
+  file:
+    path: "/var/www/{{ project.name }}"
+    owner: 'root'
+    group: 'root'
+    mode: '02755'
+    state: directory
+
+- name: Ensure projectstorage backup folder exists
+  file:
+    path: "{{ projectstorage_dir }}/backup"
+    owner: '{{ storage_owner }}'
+    group: '{{ project_storage_group }}'
+    mode: '02775'
+    state: directory
+
+- name: Ensure user exists
+  user:
+    name: '{{ owner }}'
+    shell: /bin/bash
+    group: '{{ group }}'
+    groups: 'sftp,{{ project_storage_group }}'
+    home: "{{ project.owner_home | default(project_dir) }}"
+    state: 'present'
+    system: no
+    password: "{{ project.owner_password | default(omit) }}"
+    update_password: "always"
+  when: project_default_owner != owner # ignore if devbox
+  ignore_errors: yes
+
+- name: Ensure jenkins user has access by ssh key
+  lineinfile:
+    dest: '~/.ssh/authorized_keys'
+    regexp: '^{{ project_jenkins_public_sshkey[0:12] }}'
+    line: '{{ project_jenkins_public_sshkey }}'
+    state: present
+    create: true
+  become_user: '{{ owner }}'
+  when: project_create_jenkins_access and project_jenkins_public_sshkey != '' and (project.allow_jenkins is not defined or project.allow_jenkins)
+
+#- name: Load profile for user
+#  shell: source "/etc/profile"
+#  changed_when: false
+#  args:
+#     executable: /bin/bash
+#  become: '{{ owner }}'
+
+- name: Ensure all rights on folder
+  file:
+    path: "{{ project.owner_home | default(project_dir) }}"
+    owner: '{{ owner }}'
+    group: '{{ group }}'
+    mode: '02755'
+    state: directory
+
+- name: Create project structure
+  file:
+    path: '{{ item.path }}'
+    state: directory
+    owner: '{{ owner }}'
+    group: '{{ group }}'
+    mode: '{{ item.mode }}'
+    # recurse: '{{ item.recurse | default(false) }}'
+  with_items:
+    - { path: '{{ project_dir }}', mode: '02755' }
+    - { path: '{{ project_dir }}/logs', mode: '02775', recurse: true }
+    - { path: '{{ project_dir }}/releases', mode: '02775', recurse: true }
+    - { path: '{{ project_dir }}/sessions', mode: '02777', recurse: true }
+    - { path: '{{ project_dir }}/tmp', mode: '02777', recurse: true }
+    - { path: '{{ project_dir }}/shared', mode: '02777', recurse: true }
+
+- name: Ensure snippet dir exists
+  file:
+    path: /etc/nginx/snippets/
+    state: directory
+
+- name: Create cronjobs
+  cron:
+    name: '{{ item.name }}'
+    job: '{{ item.job }}'
+    minute: '{{ item.minute | default(omit) }}'
+    hour: '{{ item.hour | default(omit) }}'
+    cron_file: "{{ item.cron_file | default(project.name+'_'+project.environment) }}"
+    user: '{{ item.user | default(owner) }}'
+    state: '{{ item.state | default("present") }}'
+  with_items: '{{ project.cronjobs | default([]) }}'
+  when: project.cronjobs is defined
+
+- name: Check if current symlink exists
+  register: _current_symlink
+  stat:
+    path: '{{ project_dir }}/releases/current'

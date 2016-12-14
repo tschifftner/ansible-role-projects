@@ -1,0 +1,13 @@
+---
+- name: Ensure group exists
+  group:
+    name: '{{ project_storage_group }}'
+
+- name: Ensure storage owner exists
+  user:
+    name: '{{ project_storage_owner }}'
+    shell: /bin/bash
+    group: '{{ project_storage_group }}'
+    home: "/home/projectstorage"
+    state: 'present'
+    system: no

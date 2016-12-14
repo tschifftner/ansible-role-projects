@@ -3,7 +3,13 @@
 projects: []
 
 project_default_owner: ''
-project_default_group: ''
+project_default_group: 'www-data'
+
+project_storage_owner: 'projectstorage'
+project_storage_group: 'projectstorage'
+
+project_create_jenkins_access: false
+project_jenkins_public_sshkey: ''
 
 # Folders required for any project
 project_folders:
@@ -31,6 +37,11 @@ project_magento2_symlinks:
   - src: 'shared/var'
     dest: 'releases/current/var'
 
+projects_s3_bucket: 's3://bucket'
+
 _project_databases: []
 _project_remove_databases: []
 _project_database_users: []
+
+_project_php5_pool: '/etc/php5/fpm/pool.d'
+_project_php7_pool: '/etc/php/7.0/fpm/pool.d'

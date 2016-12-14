@@ -1,33 +1,14 @@
 ---
-#- set_fact:
-#    project: '{{ item }}'
 
-- name: Create project structure [default, writeable]
-  file:
-    path: '/var/www/{{ project.name }}/{{ project.environment }}/{{ item }}'
-    state: directory
-    owner: '{{ project.owner | default(project_default_owner) }}'
-    group: '{{ project.group | default(project_default_group) }}'
-    mode: '02775'
-  with_items: ['logs', 'releases', 'releases/current']
+- include: '_before.yml'
 
-- name: Create project structure [default, world-writeable]
-  file:
-    path: '/var/www/{{ project.name }}/{{ project.environment }}/{{ item }}'
-    state: directory
-    owner: '{{ project.owner | default(project_default_owner) }}'
-    group: '{{ project.group | default(project_default_group) }}'
-    mode: '02777'
-  with_items: ['shared', 'sessions', 'tmp']
+- name: Set default specific facts
+  set_fact:
+    project_snippet: 'default/php.conf'
+    nginx_template: "{{ project.nginx_template | default('default/nginx.conf') }}"
+    php_template: "{{ project.php_template | default('default/php5-fpm.conf') }}"
+    dummy_path: '{{ project_dir }}/releases/build_dummy/htdocs/index.php'
 
-- name: Create nginx vhost [default]
-  notify: reload nginx
-  template:
-    src: "{{ project.nginx_template | default('default/nginx.conf') }}"
-    dest: '/etc/nginx/sites-enabled/{{ project.name }}'
 
-- name: Create php5-fpm vhost [default]
-  notify: reload php5-fpm
-  template:
-    src: "{{ project.php_template if project.php_template is defined else 'default/php5-fpm.conf' }}"
-    dest: '/etc/php5/fpm/pool.d/projects.{{ project.name }}.conf'
+- include: '_after.yml'
+ 

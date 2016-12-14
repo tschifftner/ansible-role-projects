@@ -1,16 +1,49 @@
 ---
 
+- name: Set magento facts
+  set_fact:
+    project_dir: '/var/www/{{ project.name }}/{{ project.environment }}'
+    owner: '{{ project.owner if project.owner is defined else project.environment }}'
+    group: '{{ project.group if project.group is defined else project.name }}'
+
+- name: set custom owner
+  set_fact:
+    owner: '{{ project_default_owner }}'
+  when: project.owner is not defined and project_default_owner != ''
+
+#- name: set custom group
+#  set_fact:
+#    group: '{{ project_default_group }}'
+#  when: project.group is not defined and project_default_group != ''
+#
+#- debug: msg="{{ project.owner_home | default(project_dir) }}"
+#- debug: msg="{{ owner }}"
+#- debug: msg="{{ group }}"
+#
+#- name: Ensure all rights on folder
+#  file:
+#    path: "{{ project.owner_home | default(project_dir) }}"
+#    owner: '{{ owner }}'
+#    group: '{{ group }}'
+#    mode: '777'
+#    state: directory
+##    recurse: true
+
 - name: Ensure aws config folder exists
   file:
-    path: ~/.aws
+    path: '~/.aws'
     state: directory
   when: project.awscli|length
-  become: "{{ project.owner | default(project_default_owner) }}"
+  become_user: "{{ owner }}"
+#  become: "{{ owner }}"
+  become: true
+
 
 
 - name: Set aws config
   blockinfile:
-    dest: ~/.aws/credentials
+    dest: '~/.aws/credentials'
+    create: true
     marker: "# {mark} {{ item.profilename }}"
     #insertafter: "<body>"
     content: |
@@ -20,7 +53,8 @@
       {{ key }}={{ value }}
       {% endif %}
       {% endfor %}
-
   when: project.awscli|length
   with_items: '{{ project.awscli }}'
-  become: "{{ project.owner | default(project_default_owner) }}"
+  become_user: "{{ owner }}"
+#  become: "{{ owner }}"
+  become: true

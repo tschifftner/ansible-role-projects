@@ -5,28 +5,148 @@
 # @author Tobias Schifftner, @tschifftner
 
 
-{% for helper in project.helper %}
-function {{ helper.name }} {
+function run {
     echo -e "\e[93m"
-    (cd / && {{ helper.command }})
+    (cd / && $1)
     echo -e "\e[0m"
 }
+
+
+
+{% if project.awscli is defined and project.type == 'magento' %}
+# Magento deployment default functions
+function fullsync {
+#    aws --profile {{ project.awscli.0.profilename }} s3 cp --recursive {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/backup/production /home/projectstorage/{{ project.name }}/backup/production
+    aws --profile {{ project.awscli.0.profilename }} s3 cp {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/backup/production/database/created.txt /home/projectstorage/{{ project.name }}/backup/production/database/created.txt
+    aws --profile {{ project.awscli.0.profilename }} s3 cp {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/backup/production/files/created.txt /home/projectstorage/{{ project.name }}/backup/production/files/created.txt
+    aws --profile {{ project.awscli.0.profilename }} s3 sync --delete {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/backup/production /home/projectstorage/{{ project.name }}/backup/production
+}
+
+function fastsync {
+#    aws --profile {{ project.awscli.0.profilename }} s3 cp --recursive {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/backup/production/database /home/projectstorage/{{ project.name }}/backup/production/database
+#    aws --profile {{ project.awscli.0.profilename }} s3 cp --recursive --exclude "import/*" --exclude "catalog/*" {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/backup/production/files /home/projectstorage/{{ project.name }}/backup/production/files
+    aws --profile {{ project.awscli.0.profilename }} s3 cp {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/backup/production/database/created.txt /home/projectstorage/{{ project.name }}/backup/production/database/created.txt
+    aws --profile {{ project.awscli.0.profilename }} s3 cp {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/backup/production/files/created.txt /home/projectstorage/{{ project.name }}/backup/production/files/created.txt
+    aws --profile {{ project.awscli.0.profilename }} s3 sync --delete {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/backup/production/database /home/projectstorage/{{ project.name }}/backup/production/database
+    aws --profile {{ project.awscli.0.profilename }} s3 sync --delete --exclude "import/*" --exclude "catalog/*" {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/backup/production/files /home/projectstorage/{{ project.name }}/backup/production/files
+}
+
+function install {
+{% if project.environment == 'devbox' %}
+    /home/projectstorage/{{ project.name }}/bin/deploy/deploy.sh -e {{ project.environment }} -a {{ project.name }} -r {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/builds/{{ project.build_package | default(project.name+".tar.gz") }} -t /var/www/{{ project.name }}/{{ project.environment }} -d
+    create-admin
+{% else %}
+    /home/projectstorage/{{ project.name }}/bin/deploy/deploy.sh -e {{ project.environment }} -a {{ project.name }} -r {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/builds/{{ project.build_package | default(project.name+".tar.gz") }} -t /var/www/{{ project.name }}/{{ project.environment }}
+{% endif %}
+}
+
+function reset {
+    /home/projectstorage/{{ project.name }}/bin/deploy/project_reset.sh -e {{ project.environment }} -p /var/www/{{ project.name }}/{{ project.environment }}/releases/current/htdocs/ -s /home/projectstorage/{{ project.name }}/backup/production
+{% if project.environment == 'devbox' %}
+    create-admin
+{% endif %}
+}
+
+function cleanup {
+{% if project.environment == 'devbox' %}    
+    /home/projectstorage/{{ project.name }}/bin/deploy/cleanup.sh -r /var/www/{{ project.name }}/{{ project.environment }}/releases -n 1
+{% else %}
+    /home/projectstorage/{{ project.name }}/bin/deploy/cleanup.sh -r /var/www/{{ project.name }}/{{ project.environment }}/releases
+{% endif %}
+}
+{% endif %}
+
+{% if project.type == 'magento' and project.environment == 'devbox' %}
+# Magento default functions
+function create-admin {
+    cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current/htdocs
+    echo "Create dev user (dev/test)"
+    ../tools/n98-magerun.phar admin:user:create dev dev@ambimax.de test Test User
+}
+{% endif %}
+
+
+
+
+{% if project.type == 'magento2' and project.environment == 'devbox' %}
+# Magento default functions
+function create-admin {
+    cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current
+    echo "Create dev user (dev/magento2)"
+    vendor/tschifftner/magento2-deployscripts/n98-magerun2.phar admin:user:create --admin-user="dev" --admin-password="magento2" --admin-email="dev@ambimax.de" --admin-firstname="ambimax®" --admin-lastname="Developer"
+}
+{% endif %}
+
+
+
+
+
+# Default functions
+function root {
+    run 'cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current'
+}
+
+{% if project.helper is defined %}
+# Custom functions
+{% for helper in project.helper %}
+function {{ helper.name }} {
+    current=$(pwd)
+    echo -e "\e[93m"
+    {{ helper.command }}
+    echo -e "\e[0m"
+    cd $current
+}
 {% endfor %}
+{% endif %}
 
 # run script
 if [ `type -t $1`"" == 'function' ]; then
-    $1
+    current=$(pwd)
+    echo -e "\e[93m" && $@ && echo -e "\e[0m"
+    cd $current
 else
     echo -e "
     \e[91m{{ project.name }} ({{ project.environment }})\e[0m - helper script
 
     USAGE:
 
+{% if project.awscli is defined and project.type == 'magento' %}
+    \e[0;32mfullsync \e[0m
+    Synchronizes full media in projectstorage folder with aws s3
+
+    \e[0;32mfastsync \e[0m
+    Synchronises database but only files timestamp file
+
+    \e[0;32minstall \e[0m
+    deploys full project including database import and media synchronisation
+
+    \e[0;32mreset \e[0m
+    Imports latest database and synchronises media files with projectstorage
+
+    \e[0;32mcleanup \e[0m
+    Removes old installed builds from releases folder
+
+{% endif %}
+{% if project.type == 'magento' and project.environment == 'devbox' %}
+    \e[0;32mcreate-admin \e[0m
+    Creates dev admin with password 'test'
+
+{% endif %}
+{% if project.type == 'magento2' and project.environment == 'devbox' %}
+    \e[0;32mcreate-admin \e[0m
+    Creates dev admin with password 'magento2'
+
+{% endif %}
+    \e[0;32mroot \e[0m
+    Go to project root
+
+{% if project.helper is defined %}
 {% for helper in project.helper %}
-    \e[0;32m{{ helper.name }}\e[0m
+    \e[0;32m{{ helper.name }} \e[0m
     {{ helper.info | default('') }}
 
 {% endfor %}
+{% endif %}
 
     "
 fi

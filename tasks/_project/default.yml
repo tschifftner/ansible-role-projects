@@ -1,0 +1,166 @@
+---
+
+- include: '_before.yml'
+
+- name: Set default specific facts
+  set_fact:
+    project_snippet: 'default/php.conf'
+    nginx_template: "{{ project.nginx_template | default('default/nginx.conf') }}"
+    php_template: "{{ project.php_template | default('default/php5-fpm.conf') }}"
+
+
+# #- set_fact:
+# #    project: '{{ item }}'
+# - name: Set facts
+#   set_fact:
+#     project_dir: '/var/www/{{ project.name }}/{{ project.environment }}'
+#     root_dir: '/var/www/{{ project.name }}/{{ project.environment }}/releases/current/htdocs'
+#     owner: '{{ project.owner if project.owner is defined else project.environment }}'
+#     group: '{{ project.group if project.group is defined else project.name }}'
+#     _project_ssl_dir: '/var/www/{{ project.name }}/{{ project.environment }}/.ssl'
+# #    _php_pool: "{{ '/etc/php5/fpm/pool.d' if project.php is defined and project.php == 5 else '/etc/php/7.0/fpm/pool.d'}}"
+#     _project_requires_composer: false
+
+# - name: set custom owner
+#   set_fact:
+#     owner: '{{ project_default_owner }}'
+#   when: project.owner is not defined and project_default_owner != ''
+
+# - name: set custom group
+#   set_fact:
+#     group: '{{ project_default_group }}'
+#   when: project.group is not defined and project_default_group != ''
+
+# - name: Ensure group exists
+#   group:
+#     name: '{{ group }}'
+
+# - name: Ensure project main folder exists
+#   file:
+#     path: "/var/www/{{ project.name }}"
+#     owner: 'root'
+#     group: 'root'
+#     mode: '02755'
+#     state: directory
+
+# - name: Ensure user exists
+#   user:
+#     name: '{{ owner }}'
+#     shell: /bin/bash
+#     group: '{{ group }}'
+#     append: yes
+
+# - name: Create project structure
+#   file:
+#     path: '{{ item.path }}'
+#     state: directory
+#     owner: '{{ owner }}'
+#     group: '{{ group }}'
+#     mode: '{{ item.mode }}'
+#   with_items: #'{{ directories }}'
+#     - { path: '{{ project_dir }}/logs', mode: '02775' }
+#     - { path: '{{ project_dir }}/releases', mode: '02775' }
+#     - { path: '{{ project_dir }}/sessions', mode: '02777' }
+#     - { path: '{{ project_dir }}/tmp', mode: '02777' }
+#     - { path: '{{ project_dir }}/shared', mode: '02777' }
+# #    - { path: '{{ project_dir }}/shared/media', mode: '02777' }
+# #    - { path: '{{ project_dir }}/shared/var', mode: '02777' }
+
+# - name: Check if current symlink exists
+#   register: _current_symlink
+#   stat:
+#     path: '{{ project_dir }}/releases/current'
+
+- name: Create dummy project structure [magento, default]
+  file:
+    path: '{{ project_dir }}/releases/build_dummy/htdocs'
+    state: directory
+    owner: '{{ owner }}'
+    group: '{{ group }}'
+    mode: '00775'
+  when: _current_symlink.stat.islnk is not defined
+
+- name: Add dummy index.php
+  copy:
+    content: '<?php phpinfo();'
+    dest: '{{ project_dir }}/releases/build_dummy/htdocs/index.php'
+    mode: '0755'
+    owner: '{{ owner }}'
+    group: '{{ group }}'
+  when: _current_symlink.stat.islnk is not defined
+
+# - name: Set symlink  [magento, default]
+#   file:
+#     src: '{{ project_dir }}/releases/build_dummy'
+#     dest: '{{ project_dir }}/releases/current'
+#     state: link
+#   when: _current_symlink.stat.islnk is not defined
+
+#
+#- name: Create project structure [default, writeable]
+#  file:
+#    path: '/var/www/{{ project.name }}/{{ project.environment }}/{{ item }}'
+#    state: directory
+#    owner: '{{ project.owner | default(project_default_owner) }}'
+#    group: '{{ project.group | default(project_default_group) }}'
+#    mode: '02775'
+#  with_items: ['logs', 'releases', 'releases/current']
+#
+#- name: Create project structure [default, world-writeable]
+#  file:
+#    path: '/var/www/{{ project.name }}/{{ project.environment }}/{{ item }}'
+#    state: directory
+#    owner: '{{ project.owner | default(project_default_owner) }}'
+#    group: '{{ project.group | default(project_default_group) }}'
+#    mode: '02777'
+#  with_items: ['shared', 'sessions', 'tmp']
+
+# - name: Ensure php snippet dir exists
+#   file:
+#     path: /etc/nginx/snippets/
+#     state: directory
+
+# - name: Ensure php snippet exists
+#   notify: reload nginx
+#   template:
+#     src: "default/php.conf"
+#     dest: "/etc/nginx/snippets/php.conf"
+
+# - name: Create nginx vhost [default]
+#   notify: reload nginx
+#   template:
+#     src: "{{ project.nginx_template | default('default/nginx.conf') }}"
+#     dest: '/etc/nginx/sites-enabled/{{ project.name }}.{{ project.environment }}'
+
+# - name: Ensure old php5-fpm vhost does not exist
+#   file:
+#     path: '{{ _project_php7_pool if project.php is defined and project.php == 5 else _project_php5_pool }}/projects.{{ project.name }}.{{ project.environment }}.conf'
+#     state: absent
+#   notify: "{{ 'reload php7-fpm' if project.php is defined and project.php == 5 else 'reload php5-fpm' }}"
+
+# - name: Create php5-fpm vhost [default]
+#   notify: "{{ 'reload php5-fpm' if project.php is defined and project.php == 5 else 'reload php7-fpm' }}"
+#   template:
+#     src: "{{ project.php_template if project.php_template is defined else 'default/php5-fpm.conf' }}"
+#     dest: '{{ _project_php5_pool if project.php is defined and project.php == 5 else _project_php7_pool }}/projects.{{ project.name }}.{{ project.environment }}.conf'
+
+# - name: 'remove wrong cronjobs'
+#   file:
+#     path: '/etc/cron.d/{{ item }}'
+#     state: absent
+#   with_items:
+#     - '{{ project.name }}'
+#     - '{{ project.name }}.{{ project.environment }}'
+
+# - name: 'Setup custom cronjobs'
+#   cron:
+#     name: '{{ item.name }}'
+#     minute: "{{ item.minute | default('*') }}"
+#     hour: "{{ item.hour | default('*') }}"
+#     job: '{{ item.job }}'
+#     cron_file: '{{ project.name }}_{{ project.environment }}'
+#     user: '{{ owner }}'
+#   when: project.cronjobs is defined
+#   with_items: '{{ project.cronjobs | default([]) }}'
+
+- include: '_after.yml'

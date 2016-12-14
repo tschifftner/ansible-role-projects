@@ -1,48 +1,12 @@
 ---
-- name: Set magento facts
+
+- include: '_before.yml'
+
+- name: Set magento specific facts
   set_fact:
-    project_dir: '/var/www/{{ project.name }}/{{ project.environment }}'
-    root_dir: '/var/www/{{ project.name }}/{{ project.environment }}/releases/current/htdocs'
-    #working_dir: '/var/www/{{ project.name }}/{{ project.environment }}/releases/develop'
-    projectstorage_dir: '/home/projectstorage/{{ project.name }}'
-    #owner: '{{ project.owner if project.owner is defined else (project_default_owner | default(project.name + "-" + project.environment)) }}'
-#    owner: '{{ project.name }}-{{ project.environment }}'
-#    group: '{{ project.name }}-{{ project.environment }}'
-    owner: '{{ project.owner if project.owner is defined else project.name }}'
-    group: '{{ project.group if project.group is defined else project.name }}'
-#    directories:
-#      - { path: '{{ project_dir }}/logs', mode: '02775' }
-#      - { path: '{{ project_dir }}/releases', mode: '02775' }
-#      - { path: '{{ project_dir }}/sessions', mode: '02777' }
-#      - { path: '{{ project_dir }}/tmp', mode: '02777' }
-#      - { path: '{{ project_dir }}/shared/media', mode: '02777' }
-#      - { path: '{{ project_dir }}/shared/var', mode: '02777' }
-#      - { path: '{{ projectstorage_dir }}/{{ project.environment }}/shared/media', mode: '02777' }
-#      - { path: '{{ projectstorage_dir }}/{{ project.environment }}/shared/var', mode: '02777' }
-#      - { path: '{{ projectstorage_dir }}/production', mode: '02777' }
-#      - { path: '{{ projectstorage_dir }}/bin/deploy', mode: '02777' }
-    _project_requires_composer: false
-
-- name: set custom owner
-  set_fact:
-    owner: '{{ project_default_owner }}'
-  when: project.owner is not defined and project_default_owner != ''
-
-- name: set custom group
-  set_fact:
-    group: '{{ project_default_group }}'
-  when: project.group is not defined and project_default_group != ''
-
-- name: Ensure group exists
-  group:
-    name: '{{ group }}'
-
-- name: Ensure user exists
-  user:
-    name: '{{ owner }}'
-    shell: /bin/bash
-    group: '{{ group }}'
-    append: yes
+    project_snippet: 'magento/magento.conf'
+    nginx_template: "{{ project.nginx_template | default('magento/nginx.conf') }}"
+    php_template: "{{ project.php_template | default('magento/php5-fpm.conf') }}"
 
 - name: Create project structure
   file:
@@ -51,155 +15,48 @@
     owner: '{{ owner }}'
     group: '{{ group }}'
     mode: '{{ item.mode }}'
-  with_items: #'{{ directories }}'
-    - { path: '{{ project_dir }}/logs', mode: '02775' }
-    - { path: '{{ project_dir }}/releases', mode: '02775' }
-    - { path: '{{ project_dir }}/sessions', mode: '02777' }
-    - { path: '{{ project_dir }}/tmp', mode: '02777' }
-    - { path: '{{ project_dir }}/shared', mode: '02777' }
+    recurse: '{{ item.recurse | default(false) }}'
+  with_items:
     - { path: '{{ project_dir }}/shared/media', mode: '02777' }
     - { path: '{{ project_dir }}/shared/var', mode: '02777' }
+
+- name: Create project storage structure
+  file:
+    path: '{{ item.path }}'
+    state: directory
+    owner: '{{ project_storage_owner }}'
+    group: '{{ project_storage_group }}'
+    mode: '{{ item.mode }}'
+    recurse: '{{ item.recurse | default(false) }}'
+  with_items:
     - { path: '{{ projectstorage_dir }}/{{ project.environment }}/shared/media', mode: '02777' }
     - { path: '{{ projectstorage_dir }}/{{ project.environment }}/shared/var', mode: '02777' }
     - { path: '{{ projectstorage_dir }}/production', mode: '02777' }
     - { path: '{{ projectstorage_dir }}/bin/deploy', mode: '02777' }
 
-#- name: Create project structure [default, writeable]
-#  file:
-#    path: '{{ project_dir }}/{{ item }}'
-#    state: directory
-#    owner: '{{ owner }}'
-#    group: '{{ group }}'
-#    mode: '02775'
-#  with_items: ['logs', 'releases']
-#
-#- name: Create project structure [default, world-writeable]
-#  file:
-#    path: '{{ project_dir }}/{{ item }}'
-#    state: directory
-#    owner: '{{ owner }}'
-#    group: '{{ group }}'
-#    mode: '02777'
-#  with_items: ['sessions', 'tmp']
-#
-#- name: Create project storage
-#  file:
-#    path: '{{ projectstorage_dir }}/{{ item }}'
-#    state: directory
-#    owner: '{{ owner }}'
-#    group: '{{ group }}'
-#    mode: '02777'
-#  with_items:
-#    - '{{ project.environment }}/shared/media'
-#    - '{{ project.environment }}/shared/var'
-#    - 'production'
-#    - 'bin/deploy'
-
-- name: Check if current symlink exists
-  register: _current_symlink
-  stat:
-    path: '{{ project_dir }}/releases/current'
-
-- name: Create dummy project structure [magento, default]
-  file:
-    path: '{{ project_dir }}/releases/build_dummy/htdocs'
-    state: directory
-    owner: '{{ owner }}'
-    group: '{{ group }}'
-    mode: '00775'
-  when: _current_symlink.stat.islnk is not defined
-
-- name: Add dummy index.php
-  copy:
-    content: '<?php phpinfo();'
-    dest: '{{ project_dir }}/releases/build_dummy/htdocs/index.php'
-    mode: '0755'
-    owner: '{{ owner }}'
-    group: '{{ group }}'
-
-- name: Set symlink  [magento, default]
-  file:
-    src: '{{ project_dir }}/releases/build_dummy'
-    dest: '{{ project_dir }}/releases/current'
-    state: link
-  when: _current_symlink.stat.islnk is not defined
-
-#- name: Create project structure [magento, writeable]
-#  file:
-#    path: '{{ project_dir }}/{{ item }}'
-#    state: directory
-#    owner: '{{ owner }}'
-#    group: '{{ group }}'
-#    mode: '02777'
-#  with_items: ['shared/media', 'shared/var']
-
-- name: Clone deploy script [magento]
-  git:
-    accept_hostkey: true
-    repo: '{{ project.deploy_scripts }}'
-    dest: '{{ projectstorage_dir }}/bin/deploy'
-    update: false
-    version: '{{ project.deploy_scripts_version | default(omit) }}'
-  become: "{{ owner }}"
-  when: project.deploy_scripts is defined
-
-#- name: Clone git repository [magento]
-#  git:
-#    accept_hostkey: true
-#    repo: '{{ project.git }}'
-#    dest: '{{ working_dir }}'
-#    update: false
-#    version: '{{ project.git_version | default(omit) }}'
-#  become: "{{ owner }}"
-#  when: project.git is defined
-#
-#- name: Check for composer.json file
-#  register: _project_requires_composer
-#  stat:
-#    path: '{{ working_dir }}/composer.json'
-#
-#
-#- name: Run composer install
-#  composer:
-#    command: 'install'
-#    arguments: '--verbose --no-ansi --no-interaction --prefer-source'
-#    working_dir: '{{ working_dir }}'
-#  become: "{{ owner }}"
-#
-#- name: Run modman
-#  command: modman deploy-all
-#  args:
-#    chdir: '{{ working_dir }}'
-#    creates: '{{ working_dir }}/htdocs/app/etc/local.xml'
-
-- name: Ensure magento snippet dir exists
-  file:
-    path: /etc/nginx/snippets/
-    state: directory
-
-- name: Ensure magento snippet exists
-  notify: reload nginx
-  template:
-    src: "magento/magento.conf"
-    dest: "/etc/nginx/snippets/magento.conf"
-
-- name: Create nginx vhost [magento]
-  notify: reload nginx
-  template:
-    src: "{{ project.nginx_template | default('magento/nginx.conf') }}"
-    dest: '/etc/nginx/sites-enabled/{{ project.name }}.{{ project.environment }}'
-
-- name: Create php5-fpm vhost [magento]
-  notify: reload php5-fpm
-  template:
-    src: "{{ project.php_template if project.php_template is defined else 'magento/php5-fpm.conf' }}"
-    dest: '/etc/php5/fpm/pool.d/projects.{{ project.name }}.{{ project.environment }}.conf'
-
 - name: 'cronjob [magento]'
   cron:
     name: 'cronjob for {{ project.name }} {{ project.environment }}'
     minute: '*/1'
-    #job: '(cd {{ project_dir }}/releases/current/htdocs/ && ./cron.sh >> var/log/magento.cron.log)'
-    job: '/bin/sh {{ root_dir }}/cron.sh &>> {{ root_dir }}/var/log/cron.log'
-    cron_file: '{{ project.name }}.{{ project.environment }}'
+    job: '! test -e {{ root_dir }}/maintenance.flag && ! {{ root_dir }}/scheduler_cron.sh && test -e {{ root_dir }}/cron.sh && /bin/sh {{ root_dir }}/cron.sh'
+    cron_file: '{{ project.name }}_{{ project.environment }}'
     user: '{{ owner }}'
+
+- name: 'cronjob aoe_scheduler always [magento]'
+  cron:
+    name: 'cronjob aoe_scheduler always for {{ project.name }} {{ project.environment }}'
+    minute: '*/1'
+    job: '! test -e {{ root_dir }}/maintenance.flag && test -e {{ root_dir }}/scheduler_cron.sh && {{ root_dir }}/scheduler_cron.sh && /bin/bash {{ root_dir }}/scheduler_cron.sh --mode always'
+    cron_file: '{{ project.name }}_{{ project.environment }}'
+    user: '{{ owner }}'
+
+- name: 'cronjob aoe_scheduler default [magento]'
+  cron:
+    name: 'cronjob aoe_scheduler default for {{ project.name }} {{ project.environment }}'
+    minute: '*/1'
+    job: '! test -e {{ root_dir }}/maintenance.flag && test -e {{ root_dir }}/scheduler_cron.sh && {{ root_dir }}/scheduler_cron.sh && /bin/bash {{ root_dir }}/scheduler_cron.sh --mode default'
+    cron_file: '{{ project.name }}_{{ project.environment }}'
+    user: '{{ owner }}'
+
+
+- include: '_after.yml'

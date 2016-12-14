@@ -1,0 +1,13 @@
+---
+
+- include: '_before.yml'
+
+- name: Set magento specific facts
+  set_fact:
+    project_snippet: 'wordpress/wordpress.conf'
+    nginx_template: "{{ project.nginx_template | default('wordpress/nginx.conf') }}"
+    php_template: "{{ project.php_template | default('wordpress/php5-fpm.conf') }}"
+    dummy_path: '{{ project_dir }}/releases/build_dummy/index.php'
+
+
+- include: '_after.yml'

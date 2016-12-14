@@ -1,0 +1,3 @@
+{{ _project_ssl_root_certificate }}
+
+{{ _project_ssl_intermediate_certificate }}

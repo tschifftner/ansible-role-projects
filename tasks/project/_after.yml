@@ -1,0 +1,90 @@
+---
+
+- name: Clone deploy script [magento]
+  git:
+    accept_hostkey: true
+    repo: '{{ project.deploy_scripts }}'
+    dest: '{{ projectstorage_dir }}/bin/deploy'
+    update: false
+    version: '{{ project.deploy_scripts_version | default(omit) }}'
+  become: true
+  become_user: "{{ owner }}"
+  when: project.deploy_scripts is defined
+
+- name: Create dummy project structure
+  file:
+    path: '{{ dummy_path | dirname }}'
+    state: directory
+    owner: '{{ owner }}'
+    group: '{{ group }}'
+    mode: '00775'
+  when: _current_symlink.stat.islnk is not defined
+
+- name: Add dummy index.php
+  copy:
+    content: '<?php phpinfo();'
+    dest: '{{ dummy_path }}'
+    mode: '0755'
+    owner: '{{ owner }}'
+    group: '{{ group }}'
+  when: _current_symlink.stat.islnk is not defined
+
+- name: Set symlink
+  file:
+    src: '{{ project_dir }}/releases/build_dummy'
+    dest: '{{ project_dir }}/releases/current'
+    state: link
+  when: _current_symlink.stat.islnk is not defined
+  
+- name: Ensure project snippet exists
+  notify: reload nginx
+  template:
+    src: "{{ project_snippet }}"
+    dest: "/etc/nginx/snippets/{{ project.name }}.{{ project.environment }}.conf"
+  when: project_snippet != ''
+  
+- name: Create nginx vhost
+  notify: reload nginx
+  template:
+    src: "{{ nginx_template }}"
+    dest: '/etc/nginx/sites-enabled/{{ project.name }}.{{ project.environment }}'
+  when: nginx_template != ''
+
+- name: Create php5-fpm vhost
+  notify: 'reload php5-fpm'
+  template:
+    src: "{{ php_template }}"
+    dest: '/etc/php5/fpm/pool.d/projects.{{ project.name }}.{{ project.environment }}.conf'
+  when: _php5
+  
+- name: Create php7-fpm vhost
+  notify: 'reload php7-fpm'
+  template:
+    src: "{{ php_template }}"
+    dest: '/etc/php/7.0/fpm/pool.d/projects.{{ project.name }}.{{ project.environment }}.conf'
+  when: _php7
+
+
+# Cleanup
+
+- name: Ensure old php5-fpm vhost does not exist
+  file:
+    dest: '/etc/php5/fpm/pool.d/projects.{{ project.name }}.{{ project.environment }}.conf'
+    state: absent
+  notify: 'reload php5-fpm'
+  when: not _php5
+
+- name: Ensure old php7-fpm vhost does not exist
+  file:
+    dest: '/etc/php/7.0/fpm/pool.d/projects.{{ project.name }}.{{ project.environment }}.conf'
+    state: absent
+  notify: 'reload php7-fpm'
+  when: not _php7
+
+- name: 'remove wrong cronjobs'
+  file:
+    path: '/etc/cron.d/{{ item }}'
+    state: absent
+  with_items:
+    - '{{ project.name }}'
+    - '{{ project.name }}.{{ project.environment }}' # dots are not allowed!

@@ -13,4 +13,4 @@
     owner: root
     group: root
     mode: '0644'
-    
+  when: _project_mageruncodes is defined

@@ -82,7 +82,7 @@ demo2_project:
     environment: devbox
     server_alias: demo2.local
     databases: ['demo2']
-    deploy_scripts: 'git@bitbucket.org:ambimax/magento-deployscripts.git'
+    deploy_scripts: 'https://github.com/ambimax/magento-deployscripts.git'
     awscli:
       - profilename: 'demo2'
         aws_access_key_id: 'XXXXXXXXXX'

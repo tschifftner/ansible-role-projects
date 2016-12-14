@@ -4,29 +4,51 @@
   when: projects|length
   tags: ['projects-databases']
 
+- include: projectstorage.yml
+  when: projects|length
+  tags: ['projects-storage']
 
-- include: project/default.yml
-  tags: ['projects-default']
-  when: projects|length and (project.type is not defined or project.type == 'default') and (project.remove is not defined or project.remove != true)
+- include: ssl.yml
+  tags: ['projects-ssl']
+  when: projects|length and project.ssl_certificate is defined and (project.remove is not defined or project.remove != true)
   with_items: '{{ projects }}'
   loop_control:
     loop_var: project
 
-- include: project/magento.yml
+- name: Normal Projects
+  include: project/default.yml
+  tags: ['projects-default']
+  when: projects|length and (project.type is defined and project.type == 'default') and (project.remove is not defined or project.remove != true)
+  with_items: '{{ projects }}'
+  loop_control:
+    loop_var: project
+    
+- name: Magento Projects
+  include: project/magento.yml
   tags: ['projects-magento']
   when: projects|length and (project.type is defined and project.type == 'magento') and (project.remove is not defined or project.remove != true)
   with_items: '{{ projects }}'
   loop_control:
     loop_var: project
 
-- include: project/magento2.yml
+- name: Magento 2 Projects
+  include: project/magento2.yml
   tags: ['projects-magento2']
   when: projects|length and (project.type is defined and project.type == 'magento2') and (project.remove is not defined or project.remove != true)
   with_items: '{{ projects }}'
   loop_control:
     loop_var: project
 
-- include: project/cleanup.yml
+- name: Wordpress Projects
+  include: project/wordpress.yml
+  tags: ['projects-wordpress']
+  when: projects|length and (project.type is defined and project.type == 'wordpress') and (project.remove is not defined or project.remove != true)
+  with_items: '{{ projects }}'
+  loop_control:
+    loop_var: project
+
+- name: Projects Cleanup
+  include: project/cleanup.yml
   tags: ['projects-cleanup']
   when: projects|length and project.remove is defined and project.remove == true
   with_items: '{{ projects }}'
@@ -43,7 +65,8 @@
 - include: helper.yml
   tags: ['projects-helper']
   when: projects|length
-  with_items: "{{ projects | selectattr('helper', 'defined') | list }}"
+  with_items: '{{ projects }}'
+#  with_items: "{{ projects | selectattr('helper', 'defined') | list }}"
   loop_control:
     loop_var: project
 
@@ -54,19 +77,16 @@
 #  loop_control:
 #    loop_var: project
 
-- include: hosts.yml
-  tags: ['projects-hosts']
-  when: projects|length
-  with_items: "{{ projects | selectattr('server_alias', 'defined') | list }}"
-  loop_control:
-    loop_var: project
+#- include: hosts.yml
+#  tags: ['projects-hosts']
+#  when: projects|length
+#  with_items: "{{ projects | selectattr('server_alias', 'defined') | list }}"
+#  loop_control:
+#    loop_var: project
 
 - include: mageruncodes.yml
   tags: ['projects-mageruncodes']
   when: projects|length
-  with_items: "{{ projects | selectattr('mageruncodes', 'defined') | list }}"
-  loop_control:
-    loop_var: project
 
 - name: Ensure php5-fpm is started
   service:

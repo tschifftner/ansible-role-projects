@@ -1,0 +1,195 @@
+---
+
+- include: '_before.yml'
+
+- name: Set magento2 specific facts
+  set_fact:
+    project_snippet: 'magento2/magento2.conf'
+    nginx_template: "{{ project.nginx_template | default('magento2/nginx.conf') }}"
+    php_template: "{{ project.php_template | default('magento2/php5-fpm.conf') }}"
+
+# - name: Set magento facts
+#   set_fact:
+#     project_dir: '/var/www/{{ project.name }}/{{ project.environment }}'
+#     root_dir: '/var/www/{{ project.name }}/{{ project.environment }}/releases/current/htdocs'
+#     projectstorage_dir: '/home/projectstorage/{{ project.name }}'
+#     owner: '{{ project.owner if project.owner is defined else project.environment }}'
+#     group: '{{ project.group if project.group is defined else project.name }}'
+#     _project_ssl_dir: '/var/www/{{ project.name }}/{{ project.environment }}/.ssl'
+# #    _php_pool: "{{ '/etc/php5/fpm/pool.d' if project.php is defined and project.php == 5 else '/etc/php/7.0/fpm/pool.d'}}"
+#     _project_requires_composer: false
+
+# - name: set custom owner
+#   set_fact:
+#     owner: '{{ project_default_owner }}'
+#   when: project.owner is not defined and project_default_owner != ''
+
+# - name: set custom group
+#   set_fact:
+#     group: '{{ project_default_group }}'
+#   when: project.group is not defined and project_default_group != ''
+
+# - name: Ensure group exists
+#   group:
+#     name: '{{ group }}'
+
+# - name: Ensure project main folder exists
+#   file:
+#     path: "/var/www/{{ project.name }}"
+#     owner: 'root'
+#     group: 'root'
+#     mode: '02755'
+#     state: directory
+
+# - name: Ensure user exists
+#   user:
+#     name: '{{ owner }}'
+#     shell: /bin/bash
+#     group: '{{ group }}'
+#     append: yes
+
+# - name: Create Magento 2 project structure
+#   file:
+#     path: '{{ item.path }}'
+#     state: directory
+#     owner: '{{ owner }}'
+#     group: '{{ group }}'
+#     mode: '{{ item.mode }}'
+#   with_items: #'{{ directories }}'
+#     - { path: '{{ project_dir }}/logs', mode: '02775' }
+#     - { path: '{{ project_dir }}/releases', mode: '02775' }
+#     - { path: '{{ project_dir }}/sessions', mode: '02777' }
+#     - { path: '{{ project_dir }}/tmp', mode: '02777' }
+#     - { path: '{{ project_dir }}/shared', mode: '02777' }
+#     - { path: '{{ project_dir }}/shared/media', mode: '02777' }
+#     - { path: '{{ project_dir }}/shared/var', mode: '02777' }
+#     - { path: '{{ project_dir }}/shared/var/log', mode: '02777' }
+#     - { path: '{{ projectstorage_dir }}/{{ project.environment }}/shared/media', mode: '02777' }
+#     - { path: '{{ projectstorage_dir }}/{{ project.environment }}/shared/var', mode: '02777' }
+#     # next should be separated in case several projects with different owners exists -> idempotence
+#     - { path: '{{ projectstorage_dir }}/production', mode: '02777' }
+#     - { path: '{{ projectstorage_dir }}/bin/deploy', mode: '02777' }
+
+- name: Create Magento 2 project structure
+  file:
+    path: '{{ item.path }}'
+    state: directory
+    owner: '{{ owner }}'
+    group: '{{ group }}'
+    mode: '{{ item.mode }}'
+  with_items: #'{{ directories }}'
+    - { path: '{{ project_dir }}/shared/media', mode: '02777' }
+    - { path: '{{ project_dir }}/shared/var', mode: '02777' }
+    - { path: '{{ project_dir }}/shared/var/log', mode: '02777' }
+    - { path: '{{ projectstorage_dir }}/{{ project.environment }}/shared/media', mode: '02777' }
+    - { path: '{{ projectstorage_dir }}/{{ project.environment }}/shared/var', mode: '02777' }
+    # next should be separated in case several projects with different owners exists -> idempotence
+    # - { path: '{{ projectstorage_dir }}/production', mode: '02777' }
+    # - { path: '{{ projectstorage_dir }}/bin/deploy', mode: '02777' }
+
+# - name: Check if current symlink exists
+#   register: _current_symlink
+#   stat:
+#     path: '{{ project_dir }}/releases/current'
+
+- name: Create dummy project structure [magento2, default]
+  file:
+    path: '{{ project_dir }}/releases/build_dummy/pub/static'
+    state: directory
+    owner: '{{ owner }}'
+    group: '{{ group }}'
+    mode: '00775'
+  when: _current_symlink.stat.islnk is not defined
+
+- name: Add dummy index.php
+  copy:
+    content: '<?php phpinfo();'
+    dest: '{{ project_dir }}/releases/build_dummy/pub/index.php'
+    mode: '0755'
+    owner: '{{ owner }}'
+    group: '{{ group }}'
+  when: _current_symlink.stat.islnk is not defined
+
+# - name: Set symlink  [magento, default]
+#   file:
+#     src: '{{ project_dir }}/releases/build_dummy'
+#     dest: '{{ project_dir }}/releases/current'
+#     state: link
+#   when: _current_symlink.stat.islnk is not defined
+
+# - name: Clone deploy script [magento]
+#   git:
+#     accept_hostkey: true
+#     repo: '{{ project.deploy_scripts }}'
+#     dest: '{{ projectstorage_dir }}/bin/deploy'
+#     update: false
+#     version: '{{ project.deploy_scripts_version | default(omit) }}'
+#   become: "{{ owner }}"
+#   when: project.deploy_scripts is defined
+
+# - name: Ensure magento snippet dir exists
+#   file:
+#     path: /etc/nginx/snippets/
+#     state: directory
+
+# - name: Ensure magento snippet exists
+#   notify: reload nginx
+#   template:
+#     src: "magento2/magento2.conf"
+#     dest: "/etc/nginx/snippets/magento2.conf"
+
+# - name: Create nginx vhost [magento]
+#   notify: reload nginx
+#   template:
+#     src: "{{ project.nginx_template | default('magento2/nginx.conf') }}"
+#     dest: '/etc/nginx/sites-enabled/{{ project.name }}.{{ project.environment }}'
+
+# - name: Ensure old php5-fpm vhost does not exist
+#   file:
+#     path: '{{ _project_php7_pool if project.php is defined and project.php == 5 else _project_php5_pool }}/projects.{{ project.name }}.{{ project.environment }}.conf'
+#     state: absent
+#   notify: "{{ 'reload php7-fpm' if project.php is defined and project.php == 5 else 'reload php5-fpm' }}"
+
+# - name: Create php5-fpm vhost [magento]
+#   notify: "{{ 'reload php5-fpm' if project.php is defined and project.php == 5 else 'reload php7-fpm' }}"
+#   template:
+#     src: "{{ project.php_template if project.php_template is defined else 'magento2/php5-fpm.conf' }}"
+#     dest: '{{ _project_php5_pool if project.php is defined and project.php == 5 else _project_php7_pool }}/projects.{{ project.name }}.{{ project.environment }}.conf'
+
+# - name: 'remove wrong cronjobs'
+#   file:
+#     path: '/etc/cron.d/{{ item }}'
+#     state: absent
+#   with_items:
+#     - '{{ project.name }}'
+#     - '{{ project.name }}.{{ project.environment }}'
+
+- name: 'set 1. cronjob [magento2]'
+  cron:
+    name: '1. cronjob {{ project.name }} {{ project.environment }}'
+    minute: '*/1'
+    job: '(cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current/ && /usr/bin/php bin/magento cron:run | grep -v "Ran jobs by schedule" >> var/log/magento.cron.log)'
+    cron_file: '{{ project.name }}_{{ project.environment }}'
+    user: '{{ owner }}'
+
+- name: 'set 2. cronjob [magento2]'
+  cron:
+    name: '2. cronjob {{ project.name }} {{ project.environment }}'
+    minute: '*/1'
+    #job: '/usr/bin/php /var/www/{{ project.name }}/{{ project.environment }}/releases/current/update/cron.php [>> /log/file &]'
+    job: '(cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current/ && /usr/bin/php update/cron.php >> var/log/update.cron.log)'
+    cron_file: '{{ project.name }}_{{ project.environment }}'
+    user: '{{ owner }}'
+
+- name: 'set 3. cronjob [magento2]'
+  cron:
+    name: '3. cronjob {{ project.name }} {{ project.environment }}'
+    minute: '*/1'
+    #job: '/usr/bin/php /var/www/{{ project.name }}/{{ project.environment }}/releases/current/bin/magento setup:cron:run [>> /log/file &'
+    job: '(cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current/ && /usr/bin/php bin/magento setup:cron:run >> var/log/setup.cron.log)'
+    cron_file: '{{ project.name }}_{{ project.environment }}'
+    user: '{{ owner }}'
+
+
+
+- include: '_after.yml'

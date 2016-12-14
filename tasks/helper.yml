@@ -3,7 +3,7 @@
 - name: Protect programs to be overwritten by helpers
   assert:
     that:
-      - project.helper is defined
+#      - project.helper is defined
       - project.name != 'ansible'
       - project.name!= 'ansible-console'
       - project.name!= 'ansible-doc'
@@ -27,4 +27,4 @@
     src: 'helper/project-sync-wrapper.sh'
     dest: '/usr/local/bin/{{ project.name }}-{{ project.environment }}'
     mode: '0755'
-  when: project.helper is defined
+#  when: project.helper is defined

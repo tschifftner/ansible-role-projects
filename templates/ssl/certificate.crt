@@ -1,0 +1,8 @@
+-----
+{{ _project_ssl_certificate }}
+
+{{ _project_ssl_intermediate_certificate }}
+
+{% if _project_ssl_intermediate_certificate2 is defined %}
+{{ _project_ssl_intermediate_certificate2 }}
+{% endif %}
