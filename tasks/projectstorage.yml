@@ -11,3 +11,4 @@
     home: "/home/projectstorage"
     state: 'present'
     system: no
+  ignore_errors: true

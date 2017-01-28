@@ -70,12 +70,12 @@
   loop_control:
     loop_var: project
 
-#- include: acl.yml
-#  tags: ['projects-acl']
-#  when: projects|length
-#  with_items: "{{ projects | selectattr('name', 'defined') | list }}"
-#  loop_control:
-#    loop_var: project
+- include: acl.yml
+  tags: ['projects-acl']
+  when: projects|length and project_set_acl
+  with_items: "{{ projects | selectattr('name', 'defined') | list }}"
+  loop_control:
+    loop_var: project
 
 #- include: hosts.yml
 #  tags: ['projects-hosts']

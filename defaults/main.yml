@@ -11,6 +11,8 @@ project_storage_group: 'projectstorage'
 project_create_jenkins_access: false
 project_jenkins_public_sshkey: ''
 
+project_set_acl: false
+
 # Folders required for any project
 project_folders:
   - 'logs'

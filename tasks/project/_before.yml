@@ -64,8 +64,18 @@
     system: no
     password: "{{ project.owner_password | default(omit) }}"
     update_password: "always"
+    createhome: yes
+    move_home: yes
   when: project_default_owner != owner # ignore if devbox
   ignore_errors: yes
+
+- name: Ensure all rights on folder
+  file:
+    path: "{{ project.owner_home | default(project_dir) }}"
+    owner: '{{ owner }}'
+    group: '{{ group }}'
+    mode: '02755'
+    state: directory
 
 - name: Ensure jenkins user has access by ssh key
   lineinfile:
@@ -83,14 +93,6 @@
 #  args:
 #     executable: /bin/bash
 #  become: '{{ owner }}'
-
-- name: Ensure all rights on folder
-  file:
-    path: "{{ project.owner_home | default(project_dir) }}"
-    owner: '{{ owner }}'
-    group: '{{ group }}'
-    mode: '02755'
-    state: directory
 
 - name: Create project structure
   file:

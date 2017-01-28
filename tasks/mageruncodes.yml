@@ -7,10 +7,11 @@
   with_items: "{{ projects | selectattr('mageruncodes', 'defined') | list }}"
 
 - name: Set magento run codes
+  notify: reload nginx
   template:
     src: 'mageruncodes.conf'
     dest: '/etc/nginx/conf.d/'
     owner: root
     group: root
     mode: '0644'
-  when: _project_mageruncodes is defined
+  when: _project_mageruncodes is defined and _project_mageruncodes|length

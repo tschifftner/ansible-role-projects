@@ -31,6 +31,10 @@ function fastsync {
     aws --profile {{ project.awscli.0.profilename }} s3 sync --delete --exclude "import/*" --exclude "catalog/*" {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/backup/production/files /home/projectstorage/{{ project.name }}/backup/production/files
 }
 
+function reindex {
+    cd /var/www/{{ project.name }}/{{ project.environment }}/releases/current/htdocs && ../tools/n98-magerun.phar index:reindex:all
+}
+
 function install {
 {% if project.environment == 'devbox' %}
     /home/projectstorage/{{ project.name }}/bin/deploy/deploy.sh -e {{ project.environment }} -a {{ project.name }} -r {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/builds/{{ project.build_package | default(project.name+".tar.gz") }} -t /var/www/{{ project.name }}/{{ project.environment }} -d
@@ -122,6 +126,9 @@ else
 
     \e[0;32mreset \e[0m
     Imports latest database and synchronises media files with projectstorage
+
+    \e[0;32mreindex \e[0m
+    Reindex products, categories, search, etc
 
     \e[0;32mcleanup \e[0m
     Removes old installed builds from releases folder
