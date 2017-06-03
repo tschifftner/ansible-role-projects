@@ -37,10 +37,10 @@ function reindex {
 
 function install {
 {% if project.environment == 'devbox' %}
-    /home/projectstorage/{{ project.name }}/bin/deploy/deploy.sh -e {{ project.environment }} -a {{ project.name }} -r {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/builds/{{ project.build_package | default(project.name+".tar.gz") }} -t /var/www/{{ project.name }}/{{ project.environment }} -d
+    /home/projectstorage/{{ project.name }}/bin/deploy/deploy.sh -e {{ project.environment }} -a {{ project.awscli.0.profilename }} -r {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/builds/{{ project.build_package | default(project.name+".tar.gz") }} -t /var/www/{{ project.name }}/{{ project.environment }} -d
     create-admin
 {% else %}
-    /home/projectstorage/{{ project.name }}/bin/deploy/deploy.sh -e {{ project.environment }} -a {{ project.name }} -r {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/builds/{{ project.build_package | default(project.name+".tar.gz") }} -t /var/www/{{ project.name }}/{{ project.environment }}
+    /home/projectstorage/{{ project.name }}/bin/deploy/deploy.sh -e {{ project.environment }} -a {{ project.awscli.0.profilename }} -r {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/builds/{{ project.build_package | default(project.name+".tar.gz") }} -t /var/www/{{ project.name }}/{{ project.environment }}
 {% endif %}
 }
 

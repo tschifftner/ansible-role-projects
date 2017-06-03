@@ -1,0 +1,13 @@
+---
+
+- include: '_before.yml'
+
+- name: Set akeneo specific facts
+  set_fact:
+    project_snippet: 'akeneo/akeneo.conf'
+    nginx_template: "{{ project.nginx_template | default('akeneo/nginx.conf') }}"
+    php_template: "{{ project.php_template | default('akeneo/php5-fpm.conf') }}"
+    dummy_path: '{{ project_dir }}/releases/build_dummy/web/index.php'
+
+
+- include: '_after.yml'

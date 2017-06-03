@@ -47,6 +47,14 @@
   loop_control:
     loop_var: project
 
+- name: Akeneo Projects
+  include: project/akeneo.yml
+  tags: ['projects-akeneo']
+  when: projects|length and (project.type is defined and project.type == 'akeneo') and (project.remove is not defined or project.remove != true)
+  with_items: '{{ projects }}'
+  loop_control:
+    loop_var: project
+
 - name: Projects Cleanup
   include: project/cleanup.yml
   tags: ['projects-cleanup']
