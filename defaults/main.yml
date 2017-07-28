@@ -40,6 +40,7 @@ project_magento2_symlinks:
     dest: 'releases/current/var'
 
 projects_s3_bucket: 's3://bucket'
+projects_projectstorage: '/home/projectstorage/'
 
 _project_databases: []
 _project_remove_databases: []

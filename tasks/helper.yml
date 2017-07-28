@@ -22,9 +22,9 @@
     path: '/usr/local/bin/{{ project.name }}'
     state: absent
 
-- name: create shell project sync helper
+- name: create magento project helper
   template:
-    src: 'helper/project-sync-wrapper.sh'
+    src: 'helper/magento-helper.sh'
     dest: '/usr/local/bin/{{ project.name }}-{{ project.environment }}'
     mode: '0755'
-#  when: project.helper is defined
+  when: project.type is defined and project.type == 'magento'
