@@ -35,7 +35,7 @@
     dest: '{{ project_dir }}/releases/current'
     state: link
   when: _current_symlink.stat.islnk is not defined
-  
+
 - name: Ensure project snippet exists
   notify: reload nginx
   template:
