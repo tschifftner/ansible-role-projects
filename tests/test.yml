@@ -12,6 +12,7 @@
       environment: devbox
       server_alias: magentodemo.local
       databases: ['magentodemo']
+      php: 5
 
     magento2demo_project:
       name: magento2demo

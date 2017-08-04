@@ -36,6 +36,8 @@ install:
 before_script:
   - mysql -u root -e "CREATE DATABASE IF NOT EXISTS travis;"
   - mysql -u root -e "GRANT SELECT,INSERT,UPDATE,DELETE ON travis.* TO 'travis'@'127.0.0.1' IDENTIFIED BY 'tr4v1s';"
+  - sudo echo "127.0.0.1 magentodemo.local" >> /etc/hosts
+  - sudo echo "127.0.0.1 magento2demo.local" >> /etc/hosts
 
 script:
   # Check the role/playbook's syntax.
@@ -55,8 +57,8 @@ script:
   - ansible-lint tests/$SITE
 
   # simple checks (@todo add proper tests)
-  - test -e /etc/nginx/sites-enabled/magentodemo
-  - test -e /etc/php5/fpm/pool.d/projects.magentodemo.conf
+  - test -e /etc/nginx/snippets/magentodemo.devbox.conf
+  - test -e /etc/php5/fpm/pool.d/projects.magentodemo.devbox.conf
   - test -e /var/www/magentodemo/devbox/logs
   - test -e /var/www/magentodemo/devbox/releases/current/htdocs
   - test -e /var/www/magentodemo/devbox/sessions
@@ -66,8 +68,8 @@ script:
   - grep 'magentodemo.local' /etc/hosts
   - curl http://magentodemo.local | grep 'PHP'
 
-  - test -e /etc/nginx/sites-enabled/magento2demo
-  - test -e /etc/php5/fpm/pool.d/projects.magento2demo.conf
+  - test -e /etc/nginx/snippets/magento2demo.devbox.conf
+  - test -e /etc/php/7.0/pool.d/projects.magento2demo.devbox.conf
   - test -e /var/www/magento2demo/devbox/logs
   - test -e /var/www/magento2demo/devbox/releases/current/pub
   - test -e /var/www/magento2demo/devbox/sessions
