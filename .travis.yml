@@ -36,8 +36,8 @@ install:
 before_script:
   - mysql -u root -e "CREATE DATABASE IF NOT EXISTS travis;"
   - mysql -u root -e "GRANT SELECT,INSERT,UPDATE,DELETE ON travis.* TO 'travis'@'127.0.0.1' IDENTIFIED BY 'tr4v1s';"
-  - sudo echo "127.0.0.1 magentodemo.local" >> /etc/hosts
-  - sudo echo "127.0.0.1 magento2demo.local" >> /etc/hosts
+  - echo "127.0.0.1 magentodemo.local" >> /etc/hosts
+  - echo "127.0.0.1 magento2demo.local" >> /etc/hosts
 
 script:
   # Check the role/playbook's syntax.
