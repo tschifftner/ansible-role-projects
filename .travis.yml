@@ -33,7 +33,7 @@ install:
   - pip install ansible-lint
 
 before_script:
-  - mysql -u root -e "CREATE DATABASE travis;"
+  - mysql -u root -e "CREATE DATABASE IF NOT EXISTS travis;"
   - mysql -u root -e "GRANT SELECT,INSERT,UPDATE,DELETE ON travis.* TO 'travis'@'127.0.0.1' IDENTIFIED BY 'tr4v1s';"
 
 script:
