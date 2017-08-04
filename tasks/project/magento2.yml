@@ -8,7 +8,7 @@
     nginx_template: "{{ project.nginx_template | default('magento2/nginx.conf') }}"
     php_template: "{{ project.php_template | default('magento2/php5-fpm.conf') }}"
     dummy_path: '{{ project_dir }}/releases/build_dummy/pub/index.php'
-    
+
 - name: Create Magento 2 project structure
   file:
     path: '{{ item.path }}'

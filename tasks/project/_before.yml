@@ -84,6 +84,7 @@
     line: '{{ project_jenkins_public_sshkey }}'
     state: present
     create: true
+  become: true
   become_user: '{{ owner }}'
   when: project_create_jenkins_access and project_jenkins_public_sshkey != '' and (project.allow_jenkins is not defined or project.allow_jenkins)
 

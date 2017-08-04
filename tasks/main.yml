@@ -22,7 +22,7 @@
   with_items: '{{ projects }}'
   loop_control:
     loop_var: project
-    
+
 - name: Magento Projects
   include: project/magento.yml
   tags: ['projects-magento']

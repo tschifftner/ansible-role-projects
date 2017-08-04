@@ -42,7 +42,7 @@
     src: "{{ project_snippet }}"
     dest: "/etc/nginx/snippets/{{ project.name }}.{{ project.environment }}.conf"
   when: project_snippet != ''
-  
+
 - name: Create nginx vhost
   notify: reload nginx
   template:
@@ -56,7 +56,7 @@
     src: "{{ php_template }}"
     dest: '/etc/php5/fpm/pool.d/projects.{{ project.name }}.{{ project.environment }}.conf'
   when: _php5
-  
+
 - name: Create php7-fpm vhost
   notify: 'reload php7-fpm'
   template:
