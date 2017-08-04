@@ -27,4 +27,4 @@
     src: 'helper/magento-helper.sh'
     dest: '/usr/local/bin/{{ project.name }}-{{ project.environment }}'
     mode: '0755'
-  when: project.type is defined and project.type == 'magento'
+  when: project.type is defined and project.type == 'magento' and project.awscli is defined
