@@ -16,9 +16,9 @@
   ignore_errors: true
   when: _php7_fpm_check_php5_is_installed.rc == 0
 
-# php7
-- name: Check if php5 is installed and properly configured
-  register: _php7_fpm_check_php7_is_installed
+# php7.0
+- name: Check if php7.0 is installed and properly configured
+  register: _php7_fpm_check_php7_0_is_installed
   command: php-fpm7.0 -t
   ignore_errors: true
   changed_when: false
@@ -30,7 +30,23 @@
     enabled: yes
   changed_when: false # required for idempotence
   ignore_errors: true
-  when: _php7_fpm_check_php7_is_installed.rc == 0
+  when: _php7_fpm_check_php7_0_is_installed.rc == 0
+
+# php7.1
+- name: Check if php7.1 is installed and properly configured
+  register: _php7_fpm_check_php7_1_is_installed
+  command: php-fpm7.1 -t
+  ignore_errors: true
+  changed_when: false
+
+- name: Ensure php7.1-fpm is started
+  service:
+    name: 'php7.1-fpm'
+    state: started
+    enabled: yes
+  changed_when: false # required for idempotence
+  ignore_errors: true
+  when: _php7_fpm_check_php7_1_is_installed.rc == 0
 
 # nginx
 - name: Check if nginx is installed and properly configured
