@@ -3,6 +3,7 @@
 - name: 'Set facts ({{ project.name }}.{{ project.environment }})'
   set_fact:
     project_dir: '/var/www/{{ project.name }}/{{ project.environment }}'
+    sessions_dir: '/var/www/{{ project.name }}/{{ project.environment }}/sessions'
     root_dir: '/var/www/{{ project.name }}/{{ project.environment }}/releases/current/htdocs'
     projectstorage_dir: '/home/projectstorage/{{ project.name }}'
     owner: '{{ project.owner if project.owner is defined else project.environment }}'
