@@ -47,4 +47,6 @@ _project_remove_databases: []
 _project_database_users: []
 
 _project_php5_pool: '/etc/php5/fpm/pool.d'
-_project_php7_pool: '/etc/php/7.0/fpm/pool.d'
+_project_php7_0_pool: '/etc/php/7.0/fpm/pool.d'
+_project_php7_1_pool: '/etc/php/7.1/fpm/pool.d'
+_project_php7_2_pool: '/etc/php/7.2/fpm/pool.d'

@@ -9,7 +9,8 @@
     group: '{{ project.group if project.group is defined else project.name }}'
     _project_ssl_dir: '/var/www/{{ project.name }}/{{ project.environment }}/.ssl'
     _php5: "{{ true if project.php is defined and project.php == 5 else false }}"
-    _php7: "{{ true if project.php is not defined or project.php == 7 else false }}"
+    _php7_0: "{{ true if project.php is defined and project.php == 7.0 else false }}"
+    _php7_1: "{{ true if project.php is not defined or project.php == 7 or project.php == 7.1 else false }}"
     # _php_pool: "{{ '/etc/php5/fpm/pool.d' if project.php is defined and project.php == 5 else '/etc/php/7.0/fpm/pool.d'}}"
     _project_requires_composer: false
     storage_owner: '{{ project.storage_owner | default(project_storage_owner) }}'

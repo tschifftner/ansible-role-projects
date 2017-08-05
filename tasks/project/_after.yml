@@ -54,32 +54,46 @@
   notify: 'reload php5-fpm'
   template:
     src: "{{ php_template }}"
-    dest: '/etc/php5/fpm/pool.d/projects.{{ project.name }}.{{ project.environment }}.conf'
+    dest: '{{ _project_php5_pool }}/projects.{{ project.name }}.{{ project.environment }}.conf'
   when: _php5
 
 - name: Create php7-fpm vhost
   notify: 'reload php7-fpm'
   template:
     src: "{{ php_template }}"
-    dest: '/etc/php/7.0/fpm/pool.d/projects.{{ project.name }}.{{ project.environment }}.conf'
-  when: _php7
+    dest: '{{ _project_php7_0_pool }}/projects.{{ project.name }}.{{ project.environment }}.conf'
+  when: _php7_0
+
+- name: Create php7.1-fpm vhost
+  notify: 'reload php7-fpm'
+  template:
+    src: "{{ php_template }}"
+    dest: '{{ _project_php7_1_pool }}/projects.{{ project.name }}.{{ project.environment }}.conf'
+  when: _php7_1
 
 
 # Cleanup
 
 - name: Ensure old php5-fpm vhost does not exist
   file:
-    dest: '/etc/php5/fpm/pool.d/projects.{{ project.name }}.{{ project.environment }}.conf'
+    dest: '{{ _project_php5_pool }}/projects.{{ project.name }}.{{ project.environment }}.conf'
     state: absent
   notify: 'reload php5-fpm'
   when: not _php5
 
 - name: Ensure old php7-fpm vhost does not exist
   file:
-    dest: '/etc/php/7.0/fpm/pool.d/projects.{{ project.name }}.{{ project.environment }}.conf'
+    dest: '{{ _project_php7_0_pool }}/projects.{{ project.name }}.{{ project.environment }}.conf'
     state: absent
   notify: 'reload php7-fpm'
-  when: not _php7
+  when: not _php7_0
+
+- name: Ensure old php7.1-fpm vhost does not exist
+  file:
+    dest: '{{ _project_php7_1_pool }}/projects.{{ project.name }}.{{ project.environment }}.conf'
+    state: absent
+  notify: 'reload php7-fpm'
+  when: not _php7_1
 
 - name: 'remove wrong cronjobs'
   file:
