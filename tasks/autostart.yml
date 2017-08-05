@@ -1,0 +1,49 @@
+---
+
+# php5
+- name: Check if php5 is installed and properly configured
+  register: _php7_fpm_check_php5_is_installed
+  command: php5-fpm -t
+  ignore_errors: true
+  changed_when: false
+
+- name: Ensure php5-fpm is started
+  service:
+    name: 'php5-fpm'
+    state: started
+    enabled: yes
+  changed_when: false # required for idempotence
+  ignore_errors: true
+  when: _php7_fpm_check_php5_is_installed.rc == 0
+
+# php7
+- name: Check if php5 is installed and properly configured
+  register: _php7_fpm_check_php7_is_installed
+  command: php-fpm7.0 -t
+  ignore_errors: true
+  changed_when: false
+
+- name: Ensure php7.0-fpm is started
+  service:
+    name: 'php7.0-fpm'
+    state: started
+    enabled: yes
+  changed_when: false # required for idempotence
+  ignore_errors: true
+  when: _php7_fpm_check_php7_is_installed.rc == 0
+
+# nginx
+- name: Check if nginx is installed and properly configured
+  register: _php7_fpm_check_nginx_is_installed
+  command: nginx -t
+  ignore_errors: true
+  changed_when: false
+
+- name: Ensure nginx is started
+  service:
+    name: 'nginx'
+    state: started
+    enabled: yes
+  changed_when: false # required for idempotence
+  ignore_errors: true
+  when: _php7_fpm_check_nginx_is_installed.rc == 0

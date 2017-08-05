@@ -96,17 +96,4 @@
   tags: ['projects-mageruncodes']
   when: projects|length
 
-- name: Ensure php5-fpm is started
-  service:
-    name: 'php5-fpm'
-    state: started
-    enabled: yes
-  changed_when: false # required for idempotence
-
-- name: Ensure nginx is started
-  service:
-    name: 'nginx'
-    state: started
-    enabled: yes
-  changed_when: false # required for idempotence
-
+- include: autostart.yml
