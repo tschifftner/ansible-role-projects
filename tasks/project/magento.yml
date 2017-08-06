@@ -7,6 +7,7 @@
     project_snippet: 'magento/magento.conf'
     nginx_template: "{{ project.nginx_template | default('magento/nginx.conf') }}"
     php_template: "{{ project.php_template | default('magento/php5-fpm.conf') }}"
+    logrotate_template: "{{ project.logrotate_template | default('magento/logrotate.conf') }}"
 
 - name: Create project structure
   file:
@@ -58,5 +59,12 @@
     cron_file: '{{ project.name }}_{{ project.environment }}'
     user: '{{ owner }}'
 
+- name: 'Logrotate Magento log files'
+  template:
+    src: '{{ logrotate_template }}'
+    dest: '/etc/logrotate.d/{{ project.name }}_{{ project.environment }}'
+    owner: root
+    group: root
+    mode: 0644
 
 - include: '_after.yml'
