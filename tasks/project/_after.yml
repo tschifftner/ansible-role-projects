@@ -98,9 +98,8 @@
 - name: 'cronjob for session cleanup'
   cron:
     name: 'cronjob for session cleanup {{ project.name }} {{ project.environment }}'
-    minute: '*/5'
-    job: '! test -e {{ root_dir }}/maintenance.flag && ! {{ root_dir }}/scheduler_cron.sh && test -e {{ root_dir }}/cron.sh && /bin/sh {{ root_dir }}/cron.sh'
-    job: 'test -e {{ sessions_dir }} && /usr/bin/find {{ sessions_dir }} -mindepth 1 -maxdepth 1 -type f -cmin +24 -print0 -exec rm {} \; >/dev/null 2>&1'
+    minute: '*/15'
+    job: 'test -e {{ sessions_dir }} && /usr/bin/find {{ sessions_dir }} -type f -cmin +24 -print0 | xargs -0 rm -f >/dev/null 2>&1'
     cron_file: '{{ project.name }}_{{ project.environment }}'
     user: '{{ owner }}'
 
