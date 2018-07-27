@@ -6,15 +6,17 @@ galaxy_info:
   description: Manages php5-fpm/nginx projects on Debian/Ubuntu linux servers.
   company: ambimax® GmbH
   license: MIT
-  min_ansible_version: 2.1
+  role_name: projects
+  min_ansible_version: 2.5
   platforms:
   - name: Debian
     versions:
     - jessie
+    - stretch
   - name: Ubuntu
     versions:
-    - precise
-    - trusty
+    - xenial
+    - bionic
   galaxy_tags:
     - ubuntu
     - debian

@@ -7,6 +7,7 @@ project_default_group: 'www-data'
 
 project_storage_owner: 'projectstorage'
 project_storage_group: 'projectstorage'
+project_storage_home: '/home/projectstorage'
 
 project_create_jenkins_access: false
 project_jenkins_public_sshkey: ''
@@ -40,7 +41,6 @@ project_magento2_symlinks:
     dest: 'releases/current/var'
 
 projects_s3_bucket: 's3://bucket'
-projects_projectstorage: '/home/projectstorage/'
 
 _project_databases: []
 _project_remove_databases: []
@@ -50,3 +50,7 @@ _project_php5_pool: '/etc/php5/fpm/pool.d'
 _project_php7_0_pool: '/etc/php/7.0/fpm/pool.d'
 _project_php7_1_pool: '/etc/php/7.1/fpm/pool.d'
 _project_php7_2_pool: '/etc/php/7.2/fpm/pool.d'
+
+projects_apt_packages:
+  - git
+  - cron

@@ -1,118 +1,88 @@
 ---
-sudo: required
-dist: trusty
-
-language: python
-python: "2.7"
+services: docker
 
 env:
-  - SITE=test.yml ANSIBLE_VERSION=latest
-#  - SITE=test.yml ANSIBLE_VERSION=2.1.0.0
+#  - distro: centos7
+#  - distro: centos6
+#  - distro: fedora27
+#  - distro: ubuntu1604
+#  - distro: ubuntu1404
+#  - distro: ubuntu1204
 
-branches:
-  only:
-    - master
-
-addons:
-  mariadb: '10.1'
-  hosts:
-    - magentodemo.local
-    - magento2demo.local
-
-before_install:
-  - sudo add-apt-repository -y ppa:ondrej/php
-  - sudo apt-get update -qq
-  - sudo apt-get install -y curl nginx php5 php5-cli php5-fpm php5-curl php5-imap php5-xmlrpc php5-mysqlnd php7.1 php7.1-fpm php7.1-cli software-properties-common python-mysqldb
-  - curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
-  - sudo rm -f /etc/php5/fpm/pool.d/www.conf
-
-install:
-  # Install Ansible.
-  - if [ "$ANSIBLE_VERSION" = "latest" ]; then pip install --no-binary ansible ansible; else pip install --no-binary ansible ansible==$ANSIBLE_VERSION; fi
-
-  # Add ansible.cfg to pick up roles path.
-  - "{ echo '[defaults]'; echo 'roles_path = ../'; } >> ansible.cfg"
-
-  # Install ansible-lint
-  - pip install ansible-lint
-
-before_script:
-  - mysql -u root -e "CREATE DATABASE IF NOT EXISTS travis;"
-  - mysql -u root -e "GRANT SELECT,INSERT,UPDATE,DELETE ON travis.* TO 'travis'@'127.0.0.1' IDENTIFIED BY 'tr4v1s';"
+  - distro: debian9
+  - distro: debian8
+  - distro: ubuntu1804
+  - distro: ubuntu1604
 
 script:
-  # Check the role/playbook's syntax.
-  - "ansible-playbook -i tests/inventory tests/$SITE --syntax-check"
+  # Configure test script so we can run extra tests after playbook is run.
+  - export container_id=$(date +%s)
+  - export cleanup=false
+  - export DOCKER="docker exec --tty ${container_id} env TERM=xterm"
 
-  # Run the role/playbook with ansible-playbook.
-  - "ansible-playbook -i tests/inventory tests/$SITE --connection=local --sudo"
+  # Download test shim.
+  - wget -O ${PWD}/tests/test.sh https://gist.githubusercontent.com/tschifftner/4078cf2a8429d967d5e100649ff2caa9/raw/
+  - chmod +x ${PWD}/tests/test.sh
 
-  # Run the role/playbook again, checking to make sure it's idempotent.
-  - >
-    ansible-playbook -i tests/inventory tests/$SITE --connection=local --sudo
-    | grep -q 'changed=0.*failed=0'
-    && (echo 'Idempotence test: pass' && exit 0)
-    || (echo 'Idempotence test: fail' && exit 1)
+  # Run tests.
+  - ${PWD}/tests/test.sh
 
-  # ansible-lint checks for best practice
-  - ansible-lint tests/$SITE
+  # Check acl
+  # Check autostart
+  # Check awscli
 
-  # simple checks (@todo add proper tests)
-  - test -e /etc/nginx/snippets/magentodemo.devbox.conf
-  - test -e /etc/php5/fpm/pool.d/projects.magentodemo.devbox.conf
-  - test -e /var/www/magentodemo/devbox/logs
-  - test -e /var/www/magentodemo/devbox/releases/current/htdocs
-  - test -e /var/www/magentodemo/devbox/sessions
-  - test -e /var/www/magentodemo/devbox/shared/media
-  - test -e /var/www/magentodemo/devbox/shared/var
-  - test -e /var/www/magentodemo/devbox/tmp
-  - grep 'magentodemo.local' /etc/hosts
-  - curl http://magentodemo.local | grep 'PHP'
+  # Check databases
+  - ${DOCKER} mysqlshow --user=magentodemo --password=magentodemo magentodemo
+  - ${DOCKER} mysqlshow --user=magento2demo --password=magento2demo magento2demo
 
-  - test -e /etc/nginx/snippets/magento2demo.devbox.conf
-  - test -e /etc/php/7.1/fpm/pool.d/projects.magento2demo.devbox.conf
-  - test -e /var/www/magento2demo/devbox/logs
-  - test -e /var/www/magento2demo/devbox/releases/current/pub
-  - test -e /var/www/magento2demo/devbox/sessions
-  - test -e /var/www/magento2demo/devbox/shared/media
-  - test -e /var/www/magento2demo/devbox/shared/var
-  - test -e /var/www/magento2demo/devbox/tmp
-  - grep 'magento2demo.local' /etc/hosts
-  - curl http://magento2demo.local | grep 'PHP'
+  # Check helper
+  # Check hosts?
+  # Check mageruncodes
+  # Check projectstorage
+  # Check ssl
+  # Check ssh
+
+  # Check folders magento2demo
+  - ${DOCKER} test -e /var/www/magento2demo/devbox/logs
+  - ${DOCKER} test -e /var/www/magento2demo/devbox/releases/current/htdocs
+  - ${DOCKER} test -e /var/www/magento2demo/devbox/sessions
+  - ${DOCKER} test -e /var/www/magento2demo/devbox/shared/media
+  - ${DOCKER} test -e /var/www/magento2demo/devbox/shared/var
+  - ${DOCKER} test -e /var/www/magento2demo/devbox/tmp
+
+  # Check folders magentodemo
+  - ${DOCKER} test -e /var/www/magentodemo/devbox/logs
+  - ${DOCKER} test -e /var/www/magentodemo/devbox/releases/current/pub
+  - ${DOCKER} test -e /var/www/magentodemo/devbox/sessions
+  - ${DOCKER} test -e /var/www/magentodemo/devbox/shared/media
+  - ${DOCKER} test -e /var/www/magentodemo/devbox/shared/var
+  - ${DOCKER} test -e /var/www/magentodemo/devbox/tmp
+
+  # Check folder permissions (magentodemo)
+  - ${DOCKER} ls -ald /var/www | grep -E 'drwxr-xr-x.*root root'
+  - ${DOCKER} ls -ald /var/www/magentodemo | grep -E 'drwxr-sr-x.*root root'
+  - ${DOCKER} ls -ald /var/www/magentodemo/devbox | grep -E 'drwxr-sr-x.*magentodemo www-data'
+  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.aws | grep -E 'drwx------.*magentodemo www-data'
+  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssh | grep -E 'drwx------.*magentodemo www-data'
+  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/shared | grep -E 'drwxrwsrwx.*magentodemo www-data'
+
+  # Check folder permissions (magento2demo)
+  - ${DOCKER} ls -ald /var/www | grep -E 'drwxr-xr-x.*root root'
+  - ${DOCKER} ls -ald /var/www/magento2demo | grep -E 'drwxr-sr-x.*root root'
+  - ${DOCKER} ls -ald /var/www/magento2demo/devbox | grep -E 'drwxr-sr-x.*magento2demo www-data'
+  - ${DOCKER} ls -ald /var/www/magento2demo/devbox/.aws | grep -E 'drwx------.*magento2demo www-data'
+  - ${DOCKER} ls -ald /var/www/magento2demo/devbox/.ssh | grep -E 'drwx------.*magento2demo www-data'
+  - ${DOCKER} ls -ald /var/www/magento2demo/devbox/shared | grep -E 'drwxrwsrwx.*magento2demo www-data'
+
+
 
 after_failure:
-  - ansible-playbook -i tests/inventory tests/$SITE --connection=local --sudo
-  - sudo service nginx status
-  - sudo service php5-fpm status
-  - sudo service php5-fpm restart
-  - sudo service php5-fpm status
-  - sudo service php5-fpm start
-  - sudo service php5-fpm status
-  - ansible --version
-  - curl http://127.0.0.1/
-  - curl http://localhost/
-  - nginx -v
-  - sudo nginx -t
-  - sudo php5-fpm -t
-  - sudo ls -lh /var/run/
-  - composer -v
-  - sudo cat /etc/hosts
-  - sudo cat /etc/nginx/nginx.conf
-  - sudo cat /etc/nginx/sites-enabled/magentodemo
-  - sudo cat /etc/nginx/sites-enabled/magento2demo
-  - sudo cat /etc/php5/fpm/pool.d/projects.magentodemo.conf
-  - sudo cat /etc/php5/fpm/pool.d/projects.magento2demo.conf
-  - sudo cat /var/www/magentodemo/devbox/logs/nginx_error.log
-  - sudo cat /var/www/magento2demo/devbox/logs/nginx_error.log
-  - sudo cat /var/log/php5-fpm.log
-  - sudo tail -n100 /var/log/syslog
-  - sudo cat /var/www/magentodemo/devbox/logs/php_errors.log
-  - sudo cat /var/www/magento2demo/devbox/logs/php_errors.log
-  - sudo cat /var/www/magentodemo/devbox/releases/current/htdocs/index.php
-  - sudo cat /var/www/magento2demo/devbox/releases/current/pub/index.php
-  - curl http://magentodemo.local
-  - curl http://magento2demo.local
-  - sudo cat /etc/init/php5-fpm.conf
+  - ${DOCKER} nginx -v
+  - ${DOCKER} curl http://magentodemo.local/
+  - ${DOCKER} curl http://magento2demo.local/
+  - ${DOCKER} service nginx status
+  - ${DOCKER} service php7.0-fpm status
+  - ${DOCKER} ansible --version
 
 notifications:
   slack: ambimax:2MlPTX9bY9aPxCPhJGxHKIT6

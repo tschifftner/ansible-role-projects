@@ -1,0 +1,12 @@
+
+- name: set facts
+  set_facts:
+    vhost: '{{ item }}'
+    nginx_filename: '{{ item.name if item.name is defined else ({{ project.name }}.{{ project.environment }}) }}'
+
+- name: Create nginx vhost
+  notify: reload nginx
+  template:
+    src: "{{ nginx_template }}"
+    dest: '/etc/nginx/sites-enabled/{{ nginx_filename }}'
+  when: nginx_template != ''
