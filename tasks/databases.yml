@@ -17,7 +17,6 @@
     _project_database_users: '{{ (_project_database_users | default([])) + item.database_users | list }}'
   with_items: "{{ projects | selectattr('database_users', 'defined') | list }}"
 
-
 - name: Create or update databases
   mysql_db:
     name: "{{ item }}"
@@ -35,4 +34,17 @@
     append_privs: "{{ item.append_privs | default('no') }}"
   no_log: true
   when: _project_database_users|length
+  with_items: '{{ _project_database_users }}'
+
+# For all localhost users create 127.0.0.1 alias
+- name: 'Add/update mariadb users'
+  mysql_user:
+    name: "{{ item.name }}"
+    host: "127.0.0.1"
+    password: "{{ item.password }}"
+    priv: "{{ item.priv | default('*.*:USAGE') }}"
+    state: "{{ item.state | default('present') }}"
+    append_privs: "{{ item.append_privs | default('no') }}"
+  no_log: true
+  when: _project_database_users|length and (item.state is not defined or item.state != 'absent') and (item.host is not defined or item.host == 'localhost')
   with_items: '{{ _project_database_users }}'
