@@ -10,3 +10,6 @@
     src: "{{ nginx_template }}"
     dest: '/etc/nginx/sites-enabled/{{ nginx_filename }}'
   when: nginx_template != ''
+
+- name: create ssl
+  include_task: vhosts/ssl.yml

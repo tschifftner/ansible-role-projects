@@ -1,0 +1,56 @@
+---
+- name: Set facts
+  set_fact:
+    _project_ssl_dir: '/var/www/{{ project.name }}/{{ project.environment }}/.ssl'
+    _project_ssl_certificate_key: "{{ project.ssl_certificate_key if project.ssl_certificate_key is defined else '' }}"
+    _project_ssl_certificate: "{{ project.ssl_certificate if project.ssl_certificate is defined else '' }}"
+    _project_ssl_intermediate_certificate: "{{ project.ssl_intermediate_certificate if project.ssl_intermediate_certificate is defined else '' }}"
+    _project_ssl_root_certificate: "{{ project.ssl_root_certificate if project.ssl_root_certificate is defined else '' }}"
+
+- name: Ensure ssl save paths exist
+  no_log: true
+  file:
+    path: '{{ _project_ssl_dir }}'
+    state: directory
+    owner: root
+    group: www-data
+    mode: '0440'
+
+- name: Generate trustchain.crt
+  no_log: true
+  notify: reload nginx
+  template:
+    src: 'ssl/trustchain.crt'
+    dest: '{{ _project_ssl_dir }}/trustchain.crt'
+  when: _project_ssl_root_certificate != '' and _project_ssl_intermediate_certificate != ''
+
+- name: Generate certificate.key
+  no_log: true
+  notify: reload nginx
+  template:
+    src: 'ssl/certificate.key'
+    dest: '{{ _project_ssl_dir }}/certificate.key'
+  when: _project_ssl_certificate_key != ''
+
+- name: Generate certificate.crt
+  no_log: true
+  notify: reload nginx
+  template:
+    src: 'ssl/certificate.crt'
+    dest: '{{ _project_ssl_dir }}/certificate.crt'
+  when: _project_ssl_certificate != '' and _project_ssl_intermediate_certificate != ''
+
+- name: Ensure openssl.sh helper is installed
+  copy:
+    src: openssl.sh
+    dest: /usr/local/bin/openssl.sh
+    owner: root
+    group: root
+    mode: 0655
+
+- name: Generate dhparam file
+  openssl_dhparam:
+    path: '{{ _project_ssl_dir }}/dhparam.pem'
+    size: '{{ project_dhparam_size }}'
+  notify: reload nginx
+  changed_when: false
