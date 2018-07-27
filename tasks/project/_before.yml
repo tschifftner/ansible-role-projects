@@ -4,6 +4,7 @@
   set_fact:
     project_dir: '/var/www/{{ project.name }}/{{ project.environment }}'
     sessions_dir: '/var/www/{{ project.name }}/{{ project.environment }}/sessions'
+    logs_dir: '/var/www/{{ project.name }}/{{ project.environment }}/logs'
     root_dir: '/var/www/{{ project.name }}/{{ project.environment }}/releases/current/htdocs'
     projectstorage_dir: '/home/projectstorage/{{ project.name }}'
     owner: '{{ project.owner if project.owner is defined else project.environment }}'
@@ -11,7 +12,7 @@
     _project_ssl_dir: '/var/www/{{ project.name }}/{{ project.environment }}/.ssl'
     _php5: "{{ true if project.php is defined and project.php == 5 else false }}"
     _php7_0: "{{ true if project.php is defined and project.php == 7.0 else false }}"
-    _php7_1: "{{ true if project.php is not defined or project.php == 7 or project.php == 7.1 else false }}"
+    _php7_1: "{{ true if project.php is defined and project.php == 7.1 else false }}"
     # _php_pool: "{{ '/etc/php5/fpm/pool.d' if project.php is defined and project.php == 5 else '/etc/php/7.0/fpm/pool.d'}}"
     _project_requires_composer: false
     storage_owner: '{{ project.storage_owner | default(project_storage_owner) }}'
@@ -35,9 +36,17 @@
     group: '{{ project_default_group }}'
   when: project.group is not defined and project_default_group != ''
 
-- name: Ensure group exists
+- name: Set default php version
+  set_fact:
+    _php7_0: true
+  when: _php5 == false and _php7_0 == false and _php7_1 == false
+
+- name: Ensure groups exists
   group:
-    name: '{{ group }}'
+    name: '{{ item }}'
+  with_items:
+    - '{{ group }}'
+    - sftp
 
 - name: Ensure project main folder exists
   file:
@@ -79,16 +88,34 @@
     mode: '02755'
     state: directory
 
+- name: Ensure right permissions on ssh
+  file:
+    path: "{{ project.owner_home | default(project_dir) }}/.ssh"
+    state: directory
+    owner: '{{ owner }}'
+    group: '{{ group }}'
+    mode: 0700
+
 - name: Ensure jenkins user has access by ssh key
-  lineinfile:
-    dest: '~/.ssh/authorized_keys'
-    regexp: '^{{ project_jenkins_public_sshkey[0:12] }}'
-    line: '{{ project_jenkins_public_sshkey }}'
+  authorized_key:
+    user: '{{ owner }}'
     state: present
-    create: true
-  become: true
-  become_user: '{{ owner }}'
+    key: '{{ project_jenkins_public_sshkey }}'
   when: project_create_jenkins_access and project_jenkins_public_sshkey != '' and (project.allow_jenkins is not defined or project.allow_jenkins)
+
+#- name: Ensure jenkins user has access by ssh key
+#  lineinfile:
+#    dest: '{{ project.owner_home | default(project_dir) }}/.ssh/authorized_keys'
+#    regexp: '^{{ project_jenkins_public_sshkey[0:12] }}'
+#    line: '{{ project_jenkins_public_sshkey }}'
+#    state: present
+#    create: true
+#    owner: '{{ owner }}'
+#    group: '{{ group }}'
+#    mode: 0600
+##  become: true
+##  become_user: '{{ owner }}'
+#  when: project_create_jenkins_access and project_jenkins_public_sshkey != '' and (project.allow_jenkins is not defined or project.allow_jenkins)
 
 #- name: Load profile for user
 #  shell: source "/etc/profile"

@@ -48,7 +48,7 @@
   template:
     src: "{{ nginx_template }}"
     dest: '/etc/nginx/sites-enabled/{{ project.name }}.{{ project.environment }}'
-  when: nginx_template != ''
+  when: nginx_template != '' and vhosts is not defined
 
 - name: Create php5-fpm vhost
   notify: 'reload php5-fpm'
