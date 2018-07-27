@@ -18,6 +18,7 @@
 
 - name: Generate trustchain.crt
   no_log: true
+  notify: reload nginx
   template:
     src: 'ssl/trustchain.crt'
     dest: '{{ _project_ssl_dir }}/trustchain.crt'
@@ -25,6 +26,7 @@
 
 - name: Generate certificate.key
   no_log: true
+  notify: reload nginx
   template:
     src: 'ssl/certificate.key'
     dest: '{{ _project_ssl_dir }}/certificate.key'
@@ -32,16 +34,23 @@
 
 - name: Generate certificate.crt
   no_log: true
+  notify: reload nginx
   template:
     src: 'ssl/certificate.crt'
     dest: '{{ _project_ssl_dir }}/certificate.crt'
   when: _project_ssl_certificate != '' and _project_ssl_intermediate_certificate != ''
 
-- name: Generate dhparam.pem for every ssl certificate
-  no_log: true
+- name: Ensure openssl.sh helper is installed
+  copy:
+    src: openssl.sh
+    dest: /usr/local/bin/openssl.sh
+    owner: root
+    group: root
+    mode: 0655
+
+- name: Generate dhparam file
+  openssl_dhparam:
+    path: '{{ _project_ssl_dir }}/dhparam.pem'
+    size: '{{ project_dhparam_size }}'
   notify: reload nginx
-  shell: openssl dhparam 2048 -out {{ _project_ssl_dir }}/dhparam.pem
-  args:
-    creates: '{{ _project_ssl_dir }}/dhparam.pem'
-  async: 120
-  tags: ['skip_ansible_lint']
+  changed_when: false
