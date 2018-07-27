@@ -16,6 +16,12 @@
     state: reloaded
 
 - name: reload nginx
+  command: nginx -t
+  notify: _nginx_reload
+  register: _nginx_reload
+
+- name: _nginx_reload
+  when: _nginx_reload
   service:
     name: nginx
     state: reloaded
