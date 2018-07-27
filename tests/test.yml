@@ -6,13 +6,33 @@
     project_default_owner: 'www-data'
     project_default_group: 'www-data'
 
+    project_dhparam_size: 8
+
     magentodemo_project:
       name: magentodemo
       type: magento
       environment: devbox
       server_alias: magentodemo.local
       databases: ['magentodemo']
-      php: 5
+      owner: 'magentodemo'
+      owner_password: 'tr4v1sp44ssw0rd'
+      group: 'www-data'
+      mageruncodes:
+        - store_code: base
+          hostname: magentodemo.local
+          run_type: website
+      php: 7.0
+      database_users:
+       - name: 'magentodemo'
+         host: localhost
+         password: 'magentodemo'
+         priv: 'magentodemo.*:ALL'
+      deploy_scripts: 'https://github.com/ambimax/magento-deployscripts.git'
+      awscli:
+        - profilename: 'magentodemo'
+          aws_access_key_id: 'SDFDSFDSDFSDFSSDFSDFFD'
+          aws_secret_access_key: 'KDSFKSKDFJKKSDFNSINESFLSDKFSJDFSDFS'
+          region: 'eu-central-1'
 
     magento2demo_project:
       name: magento2demo
@@ -20,20 +40,37 @@
       environment: devbox
       server_alias: magento2demo.local
       databases: ['magento2demo']
-
+      owner: 'magento2demo'
+      owner_password: 'tr4v1sp44ssw0rd'
+      group: 'www-data'
+      mageruncodes:
+        - store_code: base
+          hostname: magento2demo.local
+          run_type: website
+      php: 7.0
+      database_users:
+       - name: 'magento2demo'
+         host: localhost
+         password: 'magento2demo'
+         priv: 'magento2demo.*:ALL'
+      deploy_scripts: 'https://github.com/ambimax/magento2-deployscripts.git'
+      awscli:
+        - profilename: 'magento2demo'
+          aws_access_key_id: 'SDFDSFDSDFSDFSSDFSDFFD'
+          aws_secret_access_key: 'KDSFKSKDFJKKSDFNSINESFLSDKFSJDFSDFS'
+          region: 'eu-central-1'
 
     projects:
       - '{{ magentodemo_project }}'
       - '{{ magento2demo_project }}'
 
-
   roles:
-    - ansible-role-projects
+    - role_under_test
 
   tasks:
     - name: Add index.php to projects
       copy:
-        content: '<?php phpinfo();'
+        content: '<?php echo "{{ item }}<br><br>"; phpinfo();'
         dest: '{{ item }}'
         mode: '0755'
         owner: '{{ project_default_owner }}'
@@ -41,3 +78,12 @@
       with_items:
         - '/var/www/magentodemo/devbox/releases/current/htdocs/index.php'
         - '/var/www/magento2demo/devbox/releases/current/pub/index.php'
+
+    - name: Add local domains to /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        regexp: '^127.0.0.1'
+        line: '127.0.0.1 localhost magentodemo.local magento2demo.local'
+
+
+

@@ -1,0 +1,4 @@
+---
+- src: tschifftner.nginx
+- src: tschifftner.php7-fpm
+- src: tschifftner.mariadb
