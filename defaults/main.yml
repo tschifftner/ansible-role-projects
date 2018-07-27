@@ -14,6 +14,8 @@ project_jenkins_public_sshkey: ''
 
 project_set_acl: false
 
+project_dhparam_size: 4096
+
 # Folders required for any project
 project_folders:
   - 'logs'
