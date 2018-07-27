@@ -11,38 +11,22 @@
     owner: '{{ project_default_owner }}'
   when: project.owner is not defined and project_default_owner != ''
 
-#- name: set custom group
-#  set_fact:
-#    group: '{{ project_default_group }}'
-#  when: project.group is not defined and project_default_group != ''
-#
-#- debug: msg="{{ project.owner_home | default(project_dir) }}"
-#- debug: msg="{{ owner }}"
-#- debug: msg="{{ group }}"
-#
-#- name: Ensure all rights on folder
-#  file:
-#    path: "{{ project.owner_home | default(project_dir) }}"
-#    owner: '{{ owner }}'
-#    group: '{{ group }}'
-#    mode: '777'
-#    state: directory
-##    recurse: true
-
 - name: Ensure aws config folder exists
   file:
-    path: '~/.aws'
+    path: '{{ project.owner_home | default(project_dir) }}/.aws'
+    owner: "{{ owner }}"
+    group: "{{ group }}"
+    mode: 0700
     state: directory
   when: project.awscli|length
-  become_user: "{{ owner }}"
-#  become: "{{ owner }}"
-  become: true
-
-
 
 - name: Set aws config
   blockinfile:
-    dest: '~/.aws/credentials'
+    state: present
+    dest: '{{ project.owner_home | default(project_dir) }}/.aws/credentials'
+    owner: "{{ owner }}"
+    group: "{{ group }}"
+    mode: 0600
     create: true
     marker: "# {mark} {{ item.profilename }}"
     #insertafter: "<body>"
@@ -55,6 +39,34 @@
       {% endfor %}
   when: project.awscli|length
   with_items: '{{ project.awscli }}'
-  become_user: "{{ owner }}"
-#  become: "{{ owner }}"
-  become: true
+  no_log: true
+
+- name: Ensure aws config folder exists
+  file:
+    path: '{{ project_storage_home }}/.aws'
+    owner: "{{ project_storage_owner }}"
+    group: "{{ project_storage_group }}"
+    mode: 0700
+    state: directory
+  when: project.awscli|length
+
+- name: Set aws config
+  blockinfile:
+    state: present
+    dest: '{{ project_storage_home }}/.aws/credentials'
+    owner: "{{ project_storage_owner }}"
+    group: "{{ project_storage_group }}"
+    mode: 0600
+    create: true
+    marker: "# {mark} {{ item.profilename }}"
+    #insertafter: "<body>"
+    content: |
+      [{{ item.profilename }}]
+      {% for key, value in item.iteritems() %}
+      {% if key != 'profilename' %}
+      {{ key }}={{ value }}
+      {% endif %}
+      {% endfor %}
+  when: project.awscli|length
+  with_items: '{{ project.awscli }}'
+  no_log: true
