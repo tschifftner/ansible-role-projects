@@ -1,4 +1,5 @@
 ---
+
 - name: Ensure group exists
   group:
     name: '{{ project_storage_group }}'
@@ -8,7 +9,16 @@
     name: '{{ project_storage_owner }}'
     shell: /bin/bash
     group: '{{ project_storage_group }}'
-    home: "/home/projectstorage"
+    home: "{{ project_storage_home }}"
     state: 'present'
     system: no
   ignore_errors: true
+
+- name: Set sudoers file
+  copy:
+    content: "ALL ALL=({{ project_storage_owner }}) NOPASSWD: /usr/local/bin/aws\n"
+    dest: /etc/sudoers.d/30-projectstorage
+    owner: root
+    group: root
+    mode: 0440
+    validate: 'visudo -cf %s'
