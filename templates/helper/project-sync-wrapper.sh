@@ -5,11 +5,21 @@
 # @author Tobias Schifftner, @tschifftner
 
 
+
+
+
+
 function run {
     echo -e "\e[93m"
     (cd / && $1)
     echo -e "\e[0m"
 }
+
+function error_exit {
+	echo "$1" 1>&2
+	exit 1
+}
+
 
 
 
@@ -56,6 +66,7 @@ function cleanup {
     /home/projectstorage/{{ project.name }}/bin/deploy/cleanup.sh -r /var/www/{{ project.name }}/{{ project.environment }}/releases -n 1
 {% else %}
     /home/projectstorage/{{ project.name }}/bin/deploy/cleanup.sh -r /var/www/{{ project.name }}/{{ project.environment }}/releases
+    $PROJECTSTORAGE/$PROJECT/bin/deploy/cleanup.sh -r $RELEASE_FOLDER  || error_exit "Cleanup failed"
 {% endif %}
 }
 {% endif %}
@@ -70,6 +81,26 @@ function create-admin {
 {% endif %}
 
 
+{% if project.awscli is defined and project.type == 'magento2' %}
+
+function install {
+{% if project.environment == 'devbox' %}
+    /home/projectstorage/{{ project.name }}/bin/deploy/deploy.sh -e {{ project.environment }} -a {{ project.awscli.0.profilename }} -r {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/builds/{{ project.build_package | default(project.name+".tar.gz") }} -t /var/www/{{ project.name }}/{{ project.environment }} -d
+    create-admin
+{% else %}
+    /home/projectstorage/{{ project.name }}/bin/deploy/deploy.sh -e {{ project.environment }} -a {{ project.awscli.0.profilename }} -r {{ project.s3_bucket | default(projects_s3_bucket) }}/{{ project.name }}/builds/{{ project.build_package | default(project.name+".tar.gz") }} -t /var/www/{{ project.name }}/{{ project.environment }}
+{% endif %}
+}
+
+function cleanup {
+{% if project.environment == 'devbox' %}
+    /home/projectstorage/{{ project.name }}/bin/deploy/cleanup.sh -r /var/www/{{ project.name }}/{{ project.environment }}/releases -n 1
+{% else %}
+    /home/projectstorage/{{ project.name }}/bin/deploy/cleanup.sh -r /var/www/{{ project.name }}/{{ project.environment }}/releases
+{% endif %}
+}
+
+{% endif %}
 
 
 {% if project.type == 'magento2' and project.environment == 'devbox' %}

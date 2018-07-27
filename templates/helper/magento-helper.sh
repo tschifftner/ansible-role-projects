@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 #
-# Helper for $project ($environment)
+# Helper for {{ project.name }} ({{ project.environment }})
 # @author Tobias Schifftner, @tschifftner, ambimax® GmbH
 # @copyright © 2017
+#
+# {{ ansible_managed }}
 
 PROJECT='{{ project.name }}'
 ENVIRONMENT='{{ project.environment }}'
 S3BUCKET='{{ project.s3_bucket | default(projects_s3_bucket) }}'
-PROJECTSTORAGE='{{ project.projectstorage | default(projects_projectstorage) }}'
-#RELEASE_FOLDER='{{ project.release_folder | default("/var/www/" + project.name + "/" + project.environment + "/releases") }}'
+PROJECTSTORAGE='{{ project.projectstorage | default(project_storage_home) }}'
 RELEASE_FOLDER="{{ project.release_folder | default('/var/www/${PROJECT}/${ENVIRONMENT}/releases') }}"
 INSTALL_EXTRA_PACKAGE='{{ project.install_extra_package | default(false) }}'
+PROJECTSTORAGE_OWNER='{{ project.storage_owner | default(project_storage_owner) }}'
 
 BUILD_FILE="${S3BUCKET}/${PROJECT}/builds/${PROJECT}.tar.gz"
 RELEASE_DIR="${RELEASE_FOLDER}/.."
@@ -34,18 +36,21 @@ function error_exit {
 	exit 1
 }
 
+function run {
+    echo "sudo -u ${PROJECTSTORAGE_OWNER} $1"
+    sudo -u ${PROJECTSTORAGE_OWNER} $1
+}
+
 # Magento deployment default functions
 function fullsync {
-    #aws s3 cp $S3BUCKET/$PROJECT/backup/production/database/created.txt $PROJECTSTORAGE/$PROJECT/backup/production/database/created.txt
-    #aws s3 cp $S3BUCKET/$PROJECT/backup/production/files/created.txt $PROJECTSTORAGE/$PROJECT/backup/production/files/created.txt
-    aws s3 sync --exact-timestamps --delete $S3BUCKET/$PROJECT/backup/production $PROJECTSTORAGE/$PROJECT/backup/production || error_exit "Cannot fullsync"
+    run "aws ${AWS_PROFILE_PARAM} s3 sync --exact-timestamps --delete $S3BUCKET/$PROJECT/backup/production $PROJECTSTORAGE/$PROJECT/backup/production" || error_exit "Cannot fullsync"
+    echo "Full sync finished"
 }
 
 function fastsync {
-    #aws s3 cp $S3BUCKET/$PROJECT/backup/production/database/created.txt $PROJECTSTORAGE/$PROJECT/backup/production/database/created.txt
-    #aws s3 cp $S3BUCKET/$PROJECT/backup/production/files/created.txt $PROJECTSTORAGE/$PROJECT/backup/production/files/created.txt
-    aws s3 sync --exact-timestamps --delete $S3BUCKET/$PROJECT/backup/production/database $PROJECTSTORAGE/$PROJECT/backup/production/database || error_exit "Cannot sync database"
-    aws s3 sync --exact-timestamps --delete --exclude "import/*" --exclude "catalog/*" $S3BUCKET/$PROJECT/backup/production/files $PROJECTSTORAGE/$PROJECT/backup/production/files  || error_exit "Cannot sync files"
+    run "aws ${AWS_PROFILE_PARAM} s3 sync --exact-timestamps --delete $S3BUCKET/$PROJECT/backup/production/database $PROJECTSTORAGE/$PROJECT/backup/production/database" || error_exit "Cannot sync database"
+    run "aws ${AWS_PROFILE_PARAM} s3 sync --exact-timestamps --delete --exclude "import/*" --exclude "catalog/*" $S3BUCKET/$PROJECT/backup/production/files $PROJECTSTORAGE/$PROJECT/backup/production/files" || error_exit "Cannot sync files"
+    echo "Fast sync finished"
 }
 
 function reindex {

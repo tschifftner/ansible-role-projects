@@ -39,7 +39,8 @@
   cron:
     name: 'cronjob for {{ project.name }} {{ project.environment }}'
     minute: '*/1'
-    job: '! test -e {{ root_dir }}/maintenance.flag && ! {{ root_dir }}/scheduler_cron.sh && test -e {{ root_dir }}/cron.sh && /bin/sh {{ root_dir }}/cron.sh'
+    #job: '! test -e {{ root_dir }}/maintenance.flag && ! test -e {{ root_dir }}/scheduler_cron.sh && test -e {{ root_dir }}/cron.sh && /bin/sh {{ root_dir }}/cron.sh'
+    job: 'ROOT={{ root_dir }}; ! test -e ${ROOT}/maintenance.flag && ! test -e ${ROOT}/scheduler_cron.sh && test -e {{ root_dir }}/cron.sh && /bin/sh {{ root_dir }}/cron.sh'
     cron_file: '{{ project.name }}_{{ project.environment }}'
     user: '{{ owner }}'
 
@@ -47,7 +48,8 @@
   cron:
     name: 'cronjob aoe_scheduler always for {{ project.name }} {{ project.environment }}'
     minute: '*/1'
-    job: '! test -e {{ root_dir }}/maintenance.flag && test -e {{ root_dir }}/scheduler_cron.sh && {{ root_dir }}/scheduler_cron.sh && /bin/bash {{ root_dir }}/scheduler_cron.sh --mode always'
+    #job: '! test -e {{ root_dir }}/maintenance.flag && test -e {{ root_dir }}/scheduler_cron.sh && {{ root_dir }}/scheduler_cron.sh && /bin/bash {{ root_dir }}/scheduler_cron.sh --mode always'
+    job: 'ROOT={{ root_dir }}; ! test -e ${ROOT}/maintenance.flag && test -e ${ROOT}/scheduler_cron.sh && ${ROOT}/scheduler_cron.sh && /bin/bash ${ROOT}/scheduler_cron.sh --mode always'
     cron_file: '{{ project.name }}_{{ project.environment }}'
     user: '{{ owner }}'
 
@@ -55,7 +57,7 @@
   cron:
     name: 'cronjob aoe_scheduler default for {{ project.name }} {{ project.environment }}'
     minute: '*/1'
-    job: '! test -e {{ root_dir }}/maintenance.flag && test -e {{ root_dir }}/scheduler_cron.sh && {{ root_dir }}/scheduler_cron.sh && /bin/bash {{ root_dir }}/scheduler_cron.sh --mode default'
+    job: 'ROOT={{ root_dir }}; ! test -e ${ROOT}/maintenance.flag && test -e ${ROOT}/scheduler_cron.sh && ${ROOT}/scheduler_cron.sh && /bin/bash ${ROOT}/scheduler_cron.sh --mode default'
     cron_file: '{{ project.name }}_{{ project.environment }}'
     user: '{{ owner }}'
 
