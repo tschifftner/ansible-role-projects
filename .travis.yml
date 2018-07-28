@@ -10,9 +10,13 @@ env:
 #  - distro: ubuntu1204
 
   - distro: debian9
+    playbook: test-magento.yml
   - distro: debian8
+    playbook: test-magento.yml
   - distro: ubuntu1804
+    playbook: test-magento.yml
   - distro: ubuntu1604
+    playbook: test-magento.yml
 
 script:
   # Configure test script so we can run extra tests after playbook is run.
@@ -26,7 +30,7 @@ script:
 
   # Run tests.
   - ${PWD}/tests/test.sh
-  - ${DOCKER} bash -c "echo '127.0.0.1 magentodemo.local magento2demo.local' >> /etc/hosts"
+#  - ${DOCKER} bash -c "echo '127.0.0.1 magentodemo.local magento2demo.local' >> /etc/hosts"
 
   # Check autostart
   - ${DOCKER} systemctl --no-pager status nginx | grep 'nginx.service; enabled'
@@ -34,73 +38,138 @@ script:
   - ${DOCKER} systemctl --no-pager status php7.0-fpm | grep 'fpm.service; enabled'
   - ${DOCKER} systemctl --no-pager status php7.0-fpm | grep 'running'
 
-  # Check awscli
-  - ${DOCKER} cat /var/www/magentodemo/devbox/.aws/credentials | grep 'aws_secret_access_key=M1KDSFKSKDFJKKSDFNSINESFLSDKFSJDFSDFS'
-  - ${DOCKER} cat /var/www/magento2demo/devbox/.aws/credentials | grep 'aws_secret_access_key=M2KDSFKSKDFJKKSDFNSINESFLSDKFSJDFSDFS'
+  - |
+      if [ "${playbook}" == "test-magento.yml" ]; then
+        ${DOCKER} bash -c "echo '127.0.0.1 magentodemo.local' >> /etc/hosts"
+        # Check awscli
+        ${DOCKER} cat /var/www/magentodemo/devbox/.aws/credentials | grep 'aws_secret_access_key=M1KDSFK'
 
-  # Check databases
-  - ${DOCKER} mysqlshow --user=magentodemo --password=magentodemo magentodemo
-  - ${DOCKER} mysqlshow --user=magento2demo --password=magento2demo magento2demo
+        # Check databases
+        ${DOCKER} mysqlshow --user=magentodemo --password=magentodemo magentodemo
 
-  # Check helper
-  - ${DOCKER} magentodemo-devbox | grep 'magentodemo (devbox)'
-  - ${DOCKER} magento2demo-devbox | grep 'magento2demo (devbox)'
+        # Check helper
+        ${DOCKER} magentodemo-devbox | grep 'magentodemo (devbox)'
 
-  # Check mageruncodes
-  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magentodemo.local.*base;
-  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magentodemo.local.*website;
-  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magento2demo.local.*base;
-  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magento2demo.local.*website;
+        # Check mageruncodes
+        ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magentodemo.local.*base;
+        ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magentodemo.local.*website;
 
-  # Check projectstorage
-  - ${DOCKER} test -e /home/projectstorage/magentodemo/backup
-  - ${DOCKER} test -e /home/projectstorage/magentodemo/devbox
-  - ${DOCKER} test -e /home/projectstorage/magentodemo/production
-  - ${DOCKER} ls -ald /home/projectstorage/magentodemo | grep -E 'drwxrwsr-x.*projectstorage projectstorage'
+        # Check projectstorage
+        ${DOCKER} test -e /home/projectstorage/magentodemo/backup
+        ${DOCKER} test -e /home/projectstorage/magentodemo/devbox
+        ${DOCKER} test -e /home/projectstorage/magentodemo/production
+        ${DOCKER} ls -ald /home/projectstorage/magentodemo | grep -E 'drwxrwsr-x.*projectstorage projectstorage'
 
-  - ${DOCKER} test -e /home/projectstorage/magento2demo/backup
-  - ${DOCKER} test -e /home/projectstorage/magento2demo/devbox
-  - ${DOCKER} test -e /home/projectstorage/magento2demo/production
-  - ${DOCKER} ls -ald /home/projectstorage/magento2demo | grep -E 'drwxrwsr-x.*projectstorage projectstorage'
+        # Check ssl
+        ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl | grep -E 'dr--r-----.*root www-data'
+        ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl/certificate.key | grep -E '\-rw-r--r--.*root root'
+        ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl/certificate.crt | grep -E '\-rw-r--r--.*root root'
 
-  # Check ssl
-  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl | grep -E 'dr--r-----.*root www-data'
-  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl/certificate.key | grep -E '\-rw-r--r--.*root root'
-  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl/certificate.crt | grep -E '\-rw-r--r--.*root root'
+        # Check ssh
 
-  # Check ssh
+        # Check folders magentodemo
+        ${DOCKER} test -e /var/www/magentodemo/devbox/logs
+        ${DOCKER} test -e /var/www/magentodemo/devbox/releases/current/htdocs
+        ${DOCKER} test -e /var/www/magentodemo/devbox/sessions
+        ${DOCKER} test -e /var/www/magentodemo/devbox/shared/media
+        ${DOCKER} test -e /var/www/magentodemo/devbox/shared/var
+        ${DOCKER} test -e /var/www/magentodemo/devbox/tmp
 
-  # Check folders magentodemo
-  - ${DOCKER} test -e /var/www/magentodemo/devbox/logs
-  - ${DOCKER} test -e /var/www/magentodemo/devbox/releases/current/htdocs
-  - ${DOCKER} test -e /var/www/magentodemo/devbox/sessions
-  - ${DOCKER} test -e /var/www/magentodemo/devbox/shared/media
-  - ${DOCKER} test -e /var/www/magentodemo/devbox/shared/var
-  - ${DOCKER} test -e /var/www/magentodemo/devbox/tmp
+        # Check folder permissions / acl (magentodemo)
+        ${DOCKER} ls -ald /var/www | grep -E 'drwxr-xr-x.*root root'
+        ${DOCKER} ls -ald /var/www/magentodemo | grep -E 'drwxr-sr-x.*root root'
+        ${DOCKER} ls -ald /var/www/magentodemo/devbox | grep -E 'drwxr-sr-x.*magentodemo www-data'
+        ${DOCKER} ls -ald /var/www/magentodemo/devbox/.aws | grep -E 'drwx------.*magentodemo www-data'
+        ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssh | grep -E 'drwx------.*magentodemo www-data'
+        ${DOCKER} ls -ald /var/www/magentodemo/devbox/shared | grep -E 'drwxrwsrwx.*magentodemo www-data'
 
-  # Check folders magento2demo
-  - ${DOCKER} test -e /var/www/magento2demo/devbox/logs
-  - ${DOCKER} test -e /var/www/magento2demo/devbox/releases/current/pub
-  - ${DOCKER} test -e /var/www/magento2demo/devbox/sessions
-  - ${DOCKER} test -e /var/www/magento2demo/devbox/shared/media
-  - ${DOCKER} test -e /var/www/magento2demo/devbox/shared/var
-  - ${DOCKER} test -e /var/www/magento2demo/devbox/tmp
+        # Cronjobs (magento 1)
+        ${DOCKER} cat /etc/cron.d/magentodemo_devbox | grep 'cronjob for magentodemo devbox'
+        ${DOCKER} cat /etc/cron.d/magentodemo_devbox | grep 'cronjob aoe_scheduler always'
+        ${DOCKER} cat /etc/cron.d/magentodemo_devbox | grep 'cronjob aoe_scheduler default'
+        ${DOCKER} cat /etc/cron.d/magentodemo_devbox | grep 'cronjob for session cleanup'
+      fi
 
-  # Check folder permissions / acl (magentodemo)
-  - ${DOCKER} ls -ald /var/www | grep -E 'drwxr-xr-x.*root root'
-  - ${DOCKER} ls -ald /var/www/magentodemo | grep -E 'drwxr-sr-x.*root root'
-  - ${DOCKER} ls -ald /var/www/magentodemo/devbox | grep -E 'drwxr-sr-x.*magentodemo www-data'
-  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.aws | grep -E 'drwx------.*magentodemo www-data'
-  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssh | grep -E 'drwx------.*magentodemo www-data'
-  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/shared | grep -E 'drwxrwsrwx.*magentodemo www-data'
 
-  # Check folder permissions / acl (magento2demo)
-  - ${DOCKER} ls -ald /var/www | grep -E 'drwxr-xr-x.*root root'
-  - ${DOCKER} ls -ald /var/www/magento2demo | grep -E 'drwxr-sr-x.*root root'
-  - ${DOCKER} ls -ald /var/www/magento2demo/devbox | grep -E 'drwxr-sr-x.*magento2demo www-data'
-  - ${DOCKER} ls -ald /var/www/magento2demo/devbox/.aws | grep -E 'drwx------.*magento2demo www-data'
-  - ${DOCKER} ls -ald /var/www/magento2demo/devbox/.ssh | grep -E 'drwx------.*magento2demo www-data'
-  - ${DOCKER} ls -ald /var/www/magento2demo/devbox/shared | grep -E 'drwxrwsrwx.*magento2demo www-data'
+#  # Check awscli
+#  - ${DOCKER} cat /var/www/magentodemo/devbox/.aws/credentials | grep 'aws_secret_access_key=M1KDSFK'
+#  - ${DOCKER} cat /var/www/magento2demo/devbox/.aws/credentials | grep 'aws_secret_access_key=M2KDSFK'
+#
+#  # Check databases
+#  - ${DOCKER} mysqlshow --user=magentodemo --password=magentodemo magentodemo
+#  - ${DOCKER} mysqlshow --user=magento2demo --password=magento2demo magento2demo
+#
+#  # Check helper
+#  - ${DOCKER} magentodemo-devbox | grep 'magentodemo (devbox)'
+#  - ${DOCKER} magento2demo-devbox | grep 'magento2demo (devbox)'
+#
+#  # Check mageruncodes
+#  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magentodemo.local.*base;
+#  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magentodemo.local.*website;
+#  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magento2demo.local.*base;
+#  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magento2demo.local.*website;
+#
+#  # Check projectstorage
+#  - ${DOCKER} test -e /home/projectstorage/magentodemo/backup
+#  - ${DOCKER} test -e /home/projectstorage/magentodemo/devbox
+#  - ${DOCKER} test -e /home/projectstorage/magentodemo/production
+#  - ${DOCKER} ls -ald /home/projectstorage/magentodemo | grep -E 'drwxrwsr-x.*projectstorage projectstorage'
+#
+#  - ${DOCKER} test -e /home/projectstorage/magento2demo/backup
+#  - ${DOCKER} test -e /home/projectstorage/magento2demo/devbox
+#  - ${DOCKER} test -e /home/projectstorage/magento2demo/production
+#  - ${DOCKER} ls -ald /home/projectstorage/magento2demo | grep -E 'drwxrwsr-x.*projectstorage projectstorage'
+#
+#  # Check ssl
+#  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl | grep -E 'dr--r-----.*root www-data'
+#  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl/certificate.key | grep -E '\-rw-r--r--.*root root'
+#  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl/certificate.crt | grep -E '\-rw-r--r--.*root root'
+#
+#  # Check ssh
+#
+#  # Check folders magentodemo
+#  - ${DOCKER} test -e /var/www/magentodemo/devbox/logs
+#  - ${DOCKER} test -e /var/www/magentodemo/devbox/releases/current/htdocs
+#  - ${DOCKER} test -e /var/www/magentodemo/devbox/sessions
+#  - ${DOCKER} test -e /var/www/magentodemo/devbox/shared/media
+#  - ${DOCKER} test -e /var/www/magentodemo/devbox/shared/var
+#  - ${DOCKER} test -e /var/www/magentodemo/devbox/tmp
+#
+#  # Check folders magento2demo
+#  - ${DOCKER} test -e /var/www/magento2demo/devbox/logs
+#  - ${DOCKER} test -e /var/www/magento2demo/devbox/releases/current/pub
+#  - ${DOCKER} test -e /var/www/magento2demo/devbox/sessions
+#  - ${DOCKER} test -e /var/www/magento2demo/devbox/shared/media
+#  - ${DOCKER} test -e /var/www/magento2demo/devbox/shared/var
+#  - ${DOCKER} test -e /var/www/magento2demo/devbox/tmp
+#
+#  # Check folder permissions / acl (magentodemo)
+#  - ${DOCKER} ls -ald /var/www | grep -E 'drwxr-xr-x.*root root'
+#  - ${DOCKER} ls -ald /var/www/magentodemo | grep -E 'drwxr-sr-x.*root root'
+#  - ${DOCKER} ls -ald /var/www/magentodemo/devbox | grep -E 'drwxr-sr-x.*magentodemo www-data'
+#  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.aws | grep -E 'drwx------.*magentodemo www-data'
+#  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssh | grep -E 'drwx------.*magentodemo www-data'
+#  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/shared | grep -E 'drwxrwsrwx.*magentodemo www-data'
+#
+#  # Check folder permissions / acl (magento2demo)
+#  - ${DOCKER} ls -ald /var/www | grep -E 'drwxr-xr-x.*root root'
+#  - ${DOCKER} ls -ald /var/www/magento2demo | grep -E 'drwxr-sr-x.*root root'
+#  - ${DOCKER} ls -ald /var/www/magento2demo/devbox | grep -E 'drwxr-sr-x.*magento2demo www-data'
+#  - ${DOCKER} ls -ald /var/www/magento2demo/devbox/.aws | grep -E 'drwx------.*magento2demo www-data'
+#  - ${DOCKER} ls -ald /var/www/magento2demo/devbox/.ssh | grep -E 'drwx------.*magento2demo www-data'
+#  - ${DOCKER} ls -ald /var/www/magento2demo/devbox/shared | grep -E 'drwxrwsrwx.*magento2demo www-data'
+#
+#  # Cronjobs (magento 1)
+#  - ${DOCKER} cat /etc/cron.d/magentodemo_devbox | grep 'cronjob for magentodemo devbox'
+#  - ${DOCKER} cat /etc/cron.d/magentodemo_devbox | grep 'cronjob aoe_scheduler always'
+#  - ${DOCKER} cat /etc/cron.d/magentodemo_devbox | grep 'cronjob aoe_scheduler default'
+#  - ${DOCKER} cat /etc/cron.d/magentodemo_devbox | grep 'cronjob for session cleanup'
+#
+#  # Cronjobs (magento 2)
+#  - ${DOCKER} cat /etc/cron.d/magento2demo_devbox | grep '1. cronjob'
+#  - ${DOCKER} cat /etc/cron.d/magento2demo_devbox | grep '2. cronjob'
+#  - ${DOCKER} cat /etc/cron.d/magento2demo_devbox | grep '3. cronjob'
+#  - ${DOCKER} cat /etc/cron.d/magento2demo_devbox | grep 'cronjob for session cleanup'
 
 
 
