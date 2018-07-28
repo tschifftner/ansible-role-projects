@@ -102,8 +102,6 @@ script:
   - ${DOCKER} ls -ald /var/www/magento2demo/devbox/.ssh | grep -E 'drwx------.*magento2demo www-data'
   - ${DOCKER} ls -ald /var/www/magento2demo/devbox/shared | grep -E 'drwxrwsrwx.*magento2demo www-data'
 
-
-
 after_failure:
   - ${DOCKER} nginx -v
   - ${DOCKER} curl http://magentodemo.local/
@@ -111,6 +109,7 @@ after_failure:
   - ${DOCKER} systemctl --no-pager status nginx
   - ${DOCKER} systemctl --no-pager status php7.0-fpm
   - ${DOCKER} ansible --version
+  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf
 
 notifications:
   slack: ambimax:2MlPTX9bY9aPxCPhJGxHKIT6
