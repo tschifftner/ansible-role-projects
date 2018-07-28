@@ -26,20 +26,48 @@ script:
 
   # Run tests.
   - ${PWD}/tests/test.sh
+  - ${DOCKER} bash -c "echo '127.0.0.1 magentodemo.local magento2demo.local' >> /etc/hosts"
 
-  # Check acl
   # Check autostart
+  - ${DOCKER} systemctl --no-pager status nginx | grep 'nginx.service; enabled'
+  - ${DOCKER} systemctl --no-pager status nginx | grep 'running'
+  - ${DOCKER} systemctl --no-pager status php7.9-fpm | grep 'fpm.service; enabled'
+  - ${DOCKER} systemctl --no-pager status php7.9-fpm | grep 'running'
+
   # Check awscli
+  - ${DOCKER} cat /var/www/magentodemo/devbox/.aws/credentials | grep 'aws_secret_access_key=M1KDSFKSKDFJKKSDFNSINESFLSDKFSJDFSDFS'
+  - ${DOCKER} cat /var/www/magento2demo/devbox/.aws/credentials | grep 'aws_secret_access_key=M2KDSFKSKDFJKKSDFNSINESFLSDKFSJDFSDFS'
 
   # Check databases
   - ${DOCKER} mysqlshow --user=magentodemo --password=magentodemo magentodemo
   - ${DOCKER} mysqlshow --user=magento2demo --password=magento2demo magento2demo
 
   # Check helper
-  # Check hosts?
+  - ${DOCKER} magentodemo-devbox | grep 'magentodemo (devbox)'
+  - ${DOCKER} magento2demo-devbox | grep 'magento2demo (devbox)'
+
   # Check mageruncodes
+  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magentodemo.local.*base;
+  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magentodemo.local.*website;
+  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magento2demo.local.*base;
+  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magento2demo.local.*website;
+
   # Check projectstorage
+  - ${DOCKER} test -e /home/projectstorage/magentodemo/backup
+  - ${DOCKER} test -e /home/projectstorage/magentodemo/devbox
+  - ${DOCKER} test -e /home/projectstorage/magentodemo/production
+  - ${DOCKER} ls -ald /home/projectstorage/magentodemo | grep -E 'drwxrwsr-x.*projectstorage projectstorage'
+
+  - ${DOCKER} test -e /home/projectstorage/magento2demo/backup
+  - ${DOCKER} test -e /home/projectstorage/magento2demo/devbox
+  - ${DOCKER} test -e /home/projectstorage/magento2demo/production
+  - ${DOCKER} ls -ald /home/projectstorage/magento2demo | grep -E 'drwxrwsr-x.*projectstorage projectstorage'
+
   # Check ssl
+  ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl | grep -E 'dr--r-----.*root www-data'
+  ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl/certificate.key | grep -E '-rw-r--r--.*root root'
+  ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl/certificate.crt | grep -E '-rw-r--r--.*root root'
+
   # Check ssh
 
   # Check folders magento2demo
@@ -58,7 +86,7 @@ script:
   - ${DOCKER} test -e /var/www/magentodemo/devbox/shared/var
   - ${DOCKER} test -e /var/www/magentodemo/devbox/tmp
 
-  # Check folder permissions (magentodemo)
+  # Check folder permissions / acl (magentodemo)
   - ${DOCKER} ls -ald /var/www | grep -E 'drwxr-xr-x.*root root'
   - ${DOCKER} ls -ald /var/www/magentodemo | grep -E 'drwxr-sr-x.*root root'
   - ${DOCKER} ls -ald /var/www/magentodemo/devbox | grep -E 'drwxr-sr-x.*magentodemo www-data'
@@ -66,7 +94,7 @@ script:
   - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssh | grep -E 'drwx------.*magentodemo www-data'
   - ${DOCKER} ls -ald /var/www/magentodemo/devbox/shared | grep -E 'drwxrwsrwx.*magentodemo www-data'
 
-  # Check folder permissions (magento2demo)
+  # Check folder permissions / acl (magento2demo)
   - ${DOCKER} ls -ald /var/www | grep -E 'drwxr-xr-x.*root root'
   - ${DOCKER} ls -ald /var/www/magento2demo | grep -E 'drwxr-sr-x.*root root'
   - ${DOCKER} ls -ald /var/www/magento2demo/devbox | grep -E 'drwxr-sr-x.*magento2demo www-data'

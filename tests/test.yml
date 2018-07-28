@@ -31,8 +31,57 @@
       awscli:
         - profilename: 'magentodemo'
           aws_access_key_id: 'SDFDSFDSDFSDFSSDFSDFFD'
-          aws_secret_access_key: 'KDSFKSKDFJKKSDFNSINESFLSDKFSJDFSDFS'
+          aws_secret_access_key: 'M1KDSFKSKDFJKKSDFNSINESFLSDKFSJDFSDFS'
           region: 'eu-central-1'
+      ssl_certificate_key: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEowIBAAKCAQEAtfaT7/a34fNbCddZT6VjbXaGf54AfeiKa4tbz5ZyhqWFcRth
+        X1I3FN0w9dfUnGtouT2KLet2/pRGp1MTzg+T5OR3S1EhqMB3STPP8xh3TlX9T2+g
+        1evI7ezfNYFq5XcXk9jm9Mh8UaNHMoHZLN8cEQlT2IStrB8kNuax/aYmAV5hR9mS
+        zqOUsAtVRhz2FdyaSxYa+IM/eA+Zzm+k/UqE2WWLsnhu4mgq3jlYI0yKJZI2TPf5
+        OzCOq2ssOxsKFEtPeWYsyH91JixSdWLs8pY/WfLKlB4kmuMpUo2KAIsUXF63ROMR
+        1hW/pA5s//xFZOn5U7gEnpnvT94tp+z9wmUHlwIDAQABAoIBAHe+pOwteCUBeM+p
+        H+UB+cR3U1t4Juq0tSLAutKJNyTUmFQuqI2KFSVtymJ+fjPRm0EL9nrxkYVHHpfO
+        XCImrjTbBIZUBcp/ngBWUGqxlxG+FMzJsRYV7ExmrR0Q5b/L94AcJSDBLs6qnJfo
+        S3rz+AxeDwdViNTUSYi3mDpLtIcA8LV0Yl+RFtlTGjdmm7R7PO/4NrvfB06fUxI1
+        eSY18TfMwJzpo0o9SXvPtPqRfEXvuUAz6SmwLkGqnFmsMhdISspFRil+ZL2SoAAf
+        a2osg0r9GaVrP0hRJ3DVDbIP49QNcgUA/GbtFqniIjI/tkAUET58M37ObqfkQYsE
+        rBkJzMECgYEA4gDF95HXgVsXO1MJsCUZcfhuhvRuYc2lteNki4fVKEUYhYbFdx9A
+        fVR9bPuAxcAb/Czi9ICSZYpbw4Df6mAWHo+9OokLn5UgtijJanzKVFzmmheruX2R
+        UVozkX3bmsh/pyioQ7P05yhNXljiI8NAmxDCH3WheJjKH1h7QUvdNksCgYEAzh1m
+        kQEiLZPckxKmIXPU3JASVe1A9kcUc7LEwH6g9SrAFOGzoaVsy9Pyzu9X9FBOfFJv
+        SETkA4JCkFpyhK/resleY8unOaUKfDq/hnyuuo4d39bI6Te4OeAndCu0VMCMcqFd
+        OYA84IPGTdTR/xABr3LLbjA5fOX6T0a3pEIqVGUCgYEA0wh90urwHO3+B3tGdKBv
+        3ihorMPZvqHUtr8ax9+SfwPmHej2woEAKweWBwnh+MWmXBdd5YmZKg/EGA5jB+up
+        O+hkfiAyJlWOMgpr6W+VTqlg+0pXI+HIq/paZOTtBt9ps6EXXgDQEnljpVHB+Dr+
+        PM2tNssUeBPTyOlKTnKUoXkCgYBa6OjWSDO0+qStUepokthuODV+JNkkRxGkPlM9
+        vBxuRl7WVv6N65LjDCbqUvLuVYVonEttCsWvLoMBfINKNvWcALlbNvYZHMxVIuxa
+        +x9uNUTD985B30uoa0+7k5NEVnEcFkQyGne/Zx/OMHI3F+5GXlGP1kFk72LKGJzj
+        HDPjaQKBgFOOUeDRMQznmoR3fNnOffNDnxx7ohvtD9O9fqQNE5FXv9lLN56jTB+x
+        NlK2GbZaZho2W4MqpJyZmacQKOVIwMrBRRmvqeVSqb1RqBAm4sIVEj6QmkIjHY+v
+        mupdCnInBjBDlvoTNdf/a8O7ZzFT8maK+c72+tgd0X9TC0OXtXwH
+        -----END RSA PRIVATE KEY-----
+      ssl_certificate: |
+        -----BEGIN CERTIFICATE-----
+        MIIDCzCCAfOgAwIBAgIJAOx8Gtd30ANmMA0GCSqGSIb3DQEBBQUAMBwxGjAYBgNV
+        BAMMEW1hZ2VudG9kZW1vLmxvY2FsMB4XDTE4MDcyODA5MDYyM1oXDTI4MDcyNTA5
+        MDYyM1owHDEaMBgGA1UEAwwRbWFnZW50b2RlbW8ubG9jYWwwggEiMA0GCSqGSIb3
+        DQEBAQUAA4IBDwAwggEKAoIBAQC19pPv9rfh81sJ11lPpWNtdoZ/ngB96Ipri1vP
+        lnKGpYVxG2FfUjcU3TD119Sca2i5PYot63b+lEanUxPOD5Pk5HdLUSGowHdJM8/z
+        GHdOVf1Pb6DV68jt7N81gWrldxeT2Ob0yHxRo0cygdks3xwRCVPYhK2sHyQ25rH9
+        piYBXmFH2ZLOo5SwC1VGHPYV3JpLFhr4gz94D5nOb6T9SoTZZYuyeG7iaCreOVgj
+        TIolkjZM9/k7MI6rayw7GwoUS095ZizIf3UmLFJ1Yuzylj9Z8sqUHiSa4ylSjYoA
+        ixRcXrdE4xHWFb+kDmz//EVk6flTuASeme9P3i2n7P3CZQeXAgMBAAGjUDBOMB0G
+        A1UdDgQWBBR8ab+YcvakX2unGYY9ORvXLPiCMTAfBgNVHSMEGDAWgBR8ab+Ycvak
+        X2unGYY9ORvXLPiCMTAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBBQUAA4IBAQCX
+        YYVfjkaY0nmLpYL1t6E44TYPv0GShQFPsxtpNFHxNl02TiNC3cp5D/kVS+DJR/RF
+        YqrGtAfetVhpOMBw+Krr3itDe7qH8NMZmfRUbq9kFNIw84YBfxLXdJpo5sGn2gRF
+        NGLJWaBOd3cSgYCP5HnqAbqt/psHdM7LfEvTKj5SL9oPEYbE8ue/LSN7UXeHv9sm
+        ehlnTIpD1c6PxEUWK85Szheo92bLKkXMXOj+t3SloC/Vt/81IFjjbVVjoT86lfzD
+        LdHgJMAetRP5/me1VCik78G28FgB9O5BsC3Kz9IeWPv4JWPrqU74LBUOoW4rQkv2
+        R5oRRQTVixwsbO2Rc2pf
+        -----END CERTIFICATE-----
+
 
     magento2demo_project:
       name: magento2demo
@@ -57,7 +106,7 @@
       awscli:
         - profilename: 'magento2demo'
           aws_access_key_id: 'SDFDSFDSDFSDFSSDFSDFFD'
-          aws_secret_access_key: 'KDSFKSKDFJKKSDFNSINESFLSDKFSJDFSDFS'
+          aws_secret_access_key: 'M2KDSFKSKDFJKKSDFNSINESFLSDKFSJDFSDFS'
           region: 'eu-central-1'
 
     projects:
@@ -78,12 +127,4 @@
       with_items:
         - '/var/www/magentodemo/devbox/releases/current/htdocs/index.php'
         - '/var/www/magento2demo/devbox/releases/current/pub/index.php'
-
-    - name: Add local domains to /etc/hosts
-      lineinfile:
-        path: /etc/hosts
-        regexp: '^127.0.0.1'
-        line: '127.0.0.1 localhost magentodemo.local magento2demo.local'
-
-
 

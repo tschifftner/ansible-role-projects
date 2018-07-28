@@ -1,18 +1,22 @@
 ---
 
-- include: requirements.yml
+- name: Handle requirements
+  include: requirements.yml
   when: projects|length
   tags: ['projects-requirements']
 
-- include: databases.yml
+- name: Handle databases
+  include: databases.yml
   when: projects|length
   tags: ['projects-databases']
 
-- include: projectstorage.yml
+- name: Handle projectstorage
+  include: projectstorage.yml
   when: projects|length
   tags: ['projects-storage']
 
-- include: ssl.yml
+- name: Handle ssl certificates
+  include_tasks: ssl.yml
   tags: ['projects-ssl']
   when: projects|length and project.ssl_certificate is defined and (project.remove is not defined or project.remove != true)
   with_items: '{{ projects }}'
@@ -75,29 +79,34 @@
   loop_control:
     loop_var: project
 
-- include: awscli.yml
+- name: Handle awscli
+  include: awscli.yml
   tags: ['projects-awscli']
   when: projects|length
   with_items: "{{ projects | selectattr('awscli', 'defined') | list }}"
   loop_control:
     loop_var: project
 
-- include: helper.yml
+- name: Handle helper
+  include: helper.yml
   tags: ['projects-helper']
   when: projects|length
   with_items: '{{ projects }}'
   loop_control:
     loop_var: project
 
-- include: acl.yml
+- name: Handle ACL
+  include: acl.yml
   tags: ['projects-acl']
   when: projects|length and project_set_acl
   with_items: "{{ projects | selectattr('name', 'defined') | list }}"
   loop_control:
     loop_var: project
 
-- include: mageruncodes.yml
+- name: Handle mageruncodes
+  include: mageruncodes.yml
   tags: ['projects-mageruncodes']
   when: projects|length
 
-- include: autostart.yml
+- name: Handle autostart
+  include: autostart.yml
