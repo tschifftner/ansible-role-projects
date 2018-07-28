@@ -47,10 +47,10 @@ script:
   - ${DOCKER} magento2demo-devbox | grep 'magento2demo (devbox)'
 
   # Check mageruncodes
-  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magentodemo.local.*base;
-  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magentodemo.local.*website;
-  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magento2demo.local.*base;
-  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E magento2demo.local.*website;
+  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E 'magentodemo.local.*base';
+  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E 'magentodemo.local.*website';
+  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E 'magento2demo.local.*base';
+  - ${DOCKER} cat /etc/nginx/conf.d/mageruncodes.conf | grep -E 'magento2demo.local.*website';
 
   # Check projectstorage
   - ${DOCKER} test -e /home/projectstorage/magentodemo/backup
