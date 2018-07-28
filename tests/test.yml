@@ -5,6 +5,12 @@
   vars:
     project_default_owner: 'www-data'
     project_default_group: 'www-data'
+    project_create_jenkins_access: true
+    project_jenkins_public_sshkey: >
+      ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQC3CqmkyPRxcRtPp8f418CEJidSlb762vH0maEgVVQEIW7Ph2InYgjXra
+      IX2AA9TG1eWxzxrFDIemgGSI4ViFHpbIjitOUONVrvxMcHW0rU0UlFm25qhqPVFlCY8SgJ0XZz6sp5ERsJa+plqMoCoZwu
+      0iAy+uOjyzAL6cPSyz6hOw== test@travis-ci.org
+
 
     project_dhparam_size: 8
 
