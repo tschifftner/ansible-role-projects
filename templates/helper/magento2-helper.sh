@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Helper for $project ($environment)
+# Helper for {{ project.name }} ({{ project.environment }})
 # @author Tobias Schifftner, @tschifftner, ambimax® GmbH
 # @copyright © 2017
 
@@ -101,7 +101,7 @@ if [ `type -t $1`"" == 'function' ]; then
     cd $current
 else
 echo -e "
-    \e[91mdelphin (devbox)\e[0m - helper script
+    \e[91m{{ project.name }} ({{ project.environment }})\e[0m - helper script
 
     USAGE:
 

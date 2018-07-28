@@ -70,21 +70,21 @@ script:
 
   # Check ssh
 
-  # Check folders magento2demo
-  - ${DOCKER} test -e /var/www/magento2demo/devbox/logs
-  - ${DOCKER} test -e /var/www/magento2demo/devbox/releases/current/htdocs
-  - ${DOCKER} test -e /var/www/magento2demo/devbox/sessions
-  - ${DOCKER} test -e /var/www/magento2demo/devbox/shared/media
-  - ${DOCKER} test -e /var/www/magento2demo/devbox/shared/var
-  - ${DOCKER} test -e /var/www/magento2demo/devbox/tmp
-
   # Check folders magentodemo
   - ${DOCKER} test -e /var/www/magentodemo/devbox/logs
-  - ${DOCKER} test -e /var/www/magentodemo/devbox/releases/current/pub
+  - ${DOCKER} test -e /var/www/magentodemo/devbox/releases/current/htdocs
   - ${DOCKER} test -e /var/www/magentodemo/devbox/sessions
   - ${DOCKER} test -e /var/www/magentodemo/devbox/shared/media
   - ${DOCKER} test -e /var/www/magentodemo/devbox/shared/var
   - ${DOCKER} test -e /var/www/magentodemo/devbox/tmp
+
+  # Check folders magento2demo
+  - ${DOCKER} test -e /var/www/magento2demo/devbox/logs
+  - ${DOCKER} test -e /var/www/magento2demo/devbox/releases/current/pub
+  - ${DOCKER} test -e /var/www/magento2demo/devbox/sessions
+  - ${DOCKER} test -e /var/www/magento2demo/devbox/shared/media
+  - ${DOCKER} test -e /var/www/magento2demo/devbox/shared/var
+  - ${DOCKER} test -e /var/www/magento2demo/devbox/tmp
 
   # Check folder permissions / acl (magentodemo)
   - ${DOCKER} ls -ald /var/www | grep -E 'drwxr-xr-x.*root root'
