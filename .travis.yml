@@ -31,8 +31,8 @@ script:
   # Check autostart
   - ${DOCKER} systemctl --no-pager status nginx | grep 'nginx.service; enabled'
   - ${DOCKER} systemctl --no-pager status nginx | grep 'running'
-  - ${DOCKER} systemctl --no-pager status php7.9-fpm | grep 'fpm.service; enabled'
-  - ${DOCKER} systemctl --no-pager status php7.9-fpm | grep 'running'
+  - ${DOCKER} systemctl --no-pager status php7.0-fpm | grep 'fpm.service; enabled'
+  - ${DOCKER} systemctl --no-pager status php7.0-fpm | grep 'running'
 
   # Check awscli
   - ${DOCKER} cat /var/www/magentodemo/devbox/.aws/credentials | grep 'aws_secret_access_key=M1KDSFKSKDFJKKSDFNSINESFLSDKFSJDFSDFS'
@@ -65,8 +65,8 @@ script:
 
   # Check ssl
   - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl | grep -E 'dr--r-----.*root www-data'
-  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl/certificate.key | grep -E '-rw-r--r--.*root root'
-  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl/certificate.crt | grep -E '-rw-r--r--.*root root'
+  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl/certificate.key | grep -E '\-rw-r--r--.*root root'
+  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl/certificate.crt | grep -E '\-rw-r--r--.*root root'
 
   # Check ssh
 
@@ -108,8 +108,8 @@ after_failure:
   - ${DOCKER} nginx -v
   - ${DOCKER} curl http://magentodemo.local/
   - ${DOCKER} curl http://magento2demo.local/
-  - ${DOCKER} service nginx status
-  - ${DOCKER} service php7.0-fpm status
+  - ${DOCKER} systemctl --no-pager status nginx
+  - ${DOCKER} systemctl --no-pager status php7.0-fpm
   - ${DOCKER} ansible --version
 
 notifications:
