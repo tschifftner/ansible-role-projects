@@ -64,9 +64,9 @@ script:
   - ${DOCKER} ls -ald /home/projectstorage/magento2demo | grep -E 'drwxrwsr-x.*projectstorage projectstorage'
 
   # Check ssl
-  ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl | grep -E 'dr--r-----.*root www-data'
-  ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl/certificate.key | grep -E '-rw-r--r--.*root root'
-  ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl/certificate.crt | grep -E '-rw-r--r--.*root root'
+  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl | grep -E 'dr--r-----.*root www-data'
+  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl/certificate.key | grep -E '-rw-r--r--.*root root'
+  - ${DOCKER} ls -ald /var/www/magentodemo/devbox/.ssl/certificate.crt | grep -E '-rw-r--r--.*root root'
 
   # Check ssh
 
